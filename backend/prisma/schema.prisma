@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Dog {
+  id          Int        @id @default(autoincrement())
+  name        String
+  age         String
+  size        String // pequeno, médio, grande
+  gender      String // macho, fêmea
+  breed       String?
+  description String     @db.Text
+  temperament String
+  vaccinated  Boolean    @default(false)
+  neutered    Boolean    @default(false)
+  available   Boolean    @default(true)
+  images      DogImage[] // relação 1:N
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  adoptions Adoption[]
+
+  @@map("dogs")
+}
+
+model DogImage {
+  id    Int    @id @default(autoincrement())
+  url   String
+  dogId Int
+  dog   Dog    @relation(fields: [dogId], references: [id], onDelete: Cascade)
+}
+
+model Adoption {
+  id         Int      @id @default(autoincrement())
+  dogId      Int
+  name       String
+  email      String
+  phone      String
+  address    String   @db.Text
+  experience String   @db.Text
+  reason     String   @db.Text
+  status     String   @default("pending") // pending, approved, rejected
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  dog Dog @relation(fields: [dogId], references: [id])
+
+  @@map("adoptions")
+}
+
+model BlogPost {
+  id          Int       @id @default(autoincrement())
+  title       String
+  slug        String    @unique
+  content     String    @db.LongText
+  excerpt     String    @db.Text
+  category    String // resgates, eventos, campanhas, transparencia
+  image       String?
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("blog_posts")
+}
+
+model Volunteer {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String
+  phone        String
+  availability String   @db.Text
+  experience   String?  @db.Text
+  areas        String   @db.Text // JSON array das áreas de interesse
+  status       String   @default("pending") // pending, approved, active, inactive
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("volunteers")
+}
+
+model Donation {
+  id            Int      @id @default(autoincrement())
+  amount        Decimal  @db.Decimal(10, 2)
+  currency      String   @default("BRL")
+  paymentMethod String // pix, stripe, paypal
+  paymentId     String? // ID do pagamento no gateway
+  donorName     String?
+  donorEmail    String?
+  recurring     Boolean  @default(false)
+  status        String   @default("pending") // pending, completed, failed, refunded
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("donations")
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  subject   String?
+  message   String   @db.Text
+  status    String   @default("unread") // unread, read, replied
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contacts")
+}
+
+model Stats {
+  id          Int      @id @default(autoincrement())
+  dogsRescued Int      @default(0)
+  dogsAdopted Int      @default(0)
+  volunteers  Int      @default(0)
+  donations   Decimal  @default(0) @db.Decimal(12, 2)
+  updatedAt   DateTime @updatedAt
+
+  @@map("stats")
+}

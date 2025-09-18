@@ -1,0 +1,43 @@
+{
+  "name": "ong-amigo-dos-amigos-backend",
+  "version": "1.0.0",
+  "description": "Backend para o site da ONG Amigo dos Amigos",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
+  },
+  "keywords": [
+    "ong",
+    "adoção",
+    "cachorros",
+    "doações"
+  ],
+  "author": "Danilo Santos",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^6.16.2",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "joi": "^18.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "mysql2": "^3.15.0",
+    "nodemailer": "^7.0.6",
+    "prisma": "^6.16.2",
+    "qrcode": "^1.5.4",
+    "stripe": "^18.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "nodemon": "^3.1.10"
+  }
+}
