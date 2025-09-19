@@ -69,14 +69,19 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center hero-gradient">
-        <div className="absolute inset-0 bg-black/20"></div>
+      <section 
+        className="relative h-screen flex items-center justify-center 
+                  bg-cover bg-center bg-no-repeat 
+                  bg-[url('/images/slide1.jpg')] 
+                  before:absolute before:inset-0 
+                  before:bg-black/40 before:z-0"
+      >
         <div className="relative z-10 text-center text-white container-max px-4">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
-            Adote, Doe, Transforme Vidas
+            Adote, doe, transforme vidas...
           </h1>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto animate-slide-up">
-            Resgatamos e cuidamos de cachorros de rua, oferecendo uma segunda chance 
+            Resgatamos e cuidamos de cães e gatos de rua, oferecendo uma segunda chance 
             para encontrarem uma família amorosa.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
@@ -86,7 +91,12 @@ const Home = () => {
                 Quero Adotar
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="text-lg px-8 py-4 bg-white/10 border-white text-white hover:bg-white hover:text-gray-900">
+            <Button 
+              asChild 
+              size="lg" 
+              variant="outline" 
+              className="text-lg px-8 py-4 bg-white/10 border-white text-white hover:bg-white hover:text-gray-900"
+            >
               <Link to="/doacoes">
                 <DollarSign className="w-5 h-5 mr-2" />
                 Fazer Doação
@@ -96,13 +106,14 @@ const Home = () => {
         </div>
       </section>
 
+
       {/* Missão Section */}
       <section className="section-padding bg-gray-50">
         <div className="container-max text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Nossa Missão</h2>
           <p className="text-lg text-gray-700 max-w-3xl mx-auto mb-8">
             Somos uma organização dedicada ao resgate, reabilitação e adoção responsável 
-            de cachorros em situação de vulnerabilidade. Acreditamos que todo animal 
+            de cães e gatos em situação de vulnerabilidade. Acreditamos que todo animal 
             merece amor, cuidado e uma família.
           </p>
           <Button asChild variant="outline" size="lg">
@@ -122,7 +133,7 @@ const Home = () => {
               <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
                 {stats.dogsRescued}
               </div>
-              <p className="text-gray-600">Cães Resgatados</p>
+              <p className="text-gray-600">Cães e Gatos Resgatados</p>
             </div>
             <div className="text-center">
               <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
@@ -150,7 +161,7 @@ const Home = () => {
       <section className="section-padding bg-gray-50">
         <div className="container-max">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Cães Esperando por Você</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Pacotinhos de amor esperando por você</h2>
             <p className="text-lg text-gray-700">
               Conheça alguns dos nossos amigos que estão procurando uma família
             </p>
@@ -202,7 +213,7 @@ const Home = () => {
           <div className="text-center mt-8">
             <Button asChild size="lg" variant="outline">
               <Link to="/adocao">
-                Ver Todos os Cães
+                Ver Todos
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
@@ -288,7 +299,7 @@ const Home = () => {
       <section className="section-padding bg-primary text-white">
         <div className="container-max text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Faça Parte Desta Transformação
+            Faça parte desta transformação
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
             Seja através da adoção, doação ou voluntariado, você pode fazer a diferença 

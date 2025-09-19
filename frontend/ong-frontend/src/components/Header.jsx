@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Heart, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { MessageCircleCodeIcon } from 'lucide-react';
+import { MessageCircleHeartIcon } from 'lucide-react';
+import { MessageCircleIcon } from 'lucide-react';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,16 +25,10 @@ const Header = () => {
   return (
     <header className="bg-white shadow-lg sticky top-0 z-50">
       <div className="container-max">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-24">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-              <Heart className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Amigo dos Amigos</h1>
-              <p className="text-xs text-gray-600">ONG</p>
-            </div>
+          <Link to="/" className="flex items-center">
+            <img src="/images/logo.png" alt="ONG Amigo dos Amigos Logo" className="h-20 w-auto" />
           </Link>
 
           {/* Navegação Desktop */}
@@ -40,7 +37,7 @@ const Header = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`text-sm font-medium transition-colors duration-200 ${
+                className={`text-md font-medium transition-colors duration-200 ${
                   isActive(item.href)
                     ? 'text-primary border-b-2 border-primary'
                     : 'text-gray-700 hover:text-primary'
@@ -53,10 +50,10 @@ const Header = () => {
 
           {/* Botões de Ação */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline" size="lg">
               <Link to="/contato">
-                <Phone className="w-4 h-4 mr-2" />
-                Contato
+                <MessageCircleIcon className="w-4 h-4 mr-2" />
+                Whatsapp
               </Link>
             </Button>
             <Button asChild className="btn-accent">

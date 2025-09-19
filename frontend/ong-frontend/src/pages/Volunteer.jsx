@@ -110,7 +110,7 @@ const Volunteer = () => {
         <div className="container-max text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Seja um Voluntário</h1>
           <p className="text-xl max-w-2xl mx-auto">
-            Junte-se à nossa equipe e faça a diferença na vida de cães que precisam de amor e cuidado. 
+            Junte-se à nossa equipe e faça a diferença na vida de cães e gatos que precisam de amor e cuidado. 
             Sua ajuda é fundamental para continuarmos salvando vidas.
           </p>
         </div>

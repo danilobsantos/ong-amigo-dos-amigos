@@ -1,0 +1,56 @@
+# Configurações do Servidor
+PORT=3001
+NODE_ENV=development
+
+# Banco de Dados MySQL
+DATABASE_URL="mysql://nomedeusuario:senha@localhost:3306/nomedobanco"
+
+# JWT
+JWT_SECRET=uP1m9oBtWZ3r0sHq8hV5LQ9m3QyE5fRkX7z2yG==
+JWT_EXPIRES_IN=7d
+
+# Email (Nodemailer)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=contato@amigodosamigos.org
+EMAIL_PASS=sua_senha_email_aqui
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_sua_chave_stripe_aqui
+STRIPE_WEBHOOK_SECRET=whsec_sua_webhook_secret_aqui
+
+# Upload de Arquivos
+UPLOAD_PATH=./uploads
+MAX_FILE_SIZE=5242880
+
+# URLs
+FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:3001
+
+# Google Maps
+GOOGLE_MAPS_API_KEY=sua_chave_google_maps_aqui
+
+# PIX
+PIX_KEY=contato@amigodosamigos.org
+
+# WhatsApp
+WHATSAPP_NUMBER=5511999999999
+
+# Email adicional
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=contato@amigodosamigos.org
+SMTP_PASS=sua_senha_email_aqui
+FROM_EMAIL=contato@amigodosamigos.org
+ADMIN_EMAIL=admin@amigodosamigos.org
+
+# Configurações da ONG
+ONG_NAME="ONG Amigo dos Amigos"
+ONG_ADDRESS="Rua das Flores, 123, Centro, São Paulo - SP, CEP: 01234-567"
+ONG_PHONE="(11) 99999-9999"
+ONG_EMAIL="contato@amigodosamigos.org"
+
+# Redes Sociais
+FACEBOOK_URL=https://facebook.com/amigodosamigos
+INSTAGRAM_URL=https://instagram.com/amigodosamigos
+TWITTER_URL=https://twitter.com/amigodosamigos
