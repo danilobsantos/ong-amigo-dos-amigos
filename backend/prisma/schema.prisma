@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -23,22 +20,20 @@ model User {
 }
 
 model Dog {
-  id          Int        @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
   age         String
-  size        String // pequeno, médio, grande
-  gender      String // macho, fêmea
+  size        String
+  gender      String
   breed       String?
-  description String     @db.Text
+  description String   @db.Text
   temperament String
-  vaccinated  Boolean    @default(false)
-  neutered    Boolean    @default(false)
-  available   Boolean    @default(true)
-  images      DogImage[] // relação 1:N
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  adoptions Adoption[]
+  vaccinated  Boolean  @default(false)
+  neutered    Boolean  @default(false)
+  available   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  animalType  String   @default("cachorro")
 
   @@map("dogs")
 }
@@ -47,7 +42,8 @@ model DogImage {
   id    Int    @id @default(autoincrement())
   url   String
   dogId Int
-  dog   Dog    @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
+  @@index([dogId], map: "DogImage_dogId_fkey")
 }
 
 model Adoption {
@@ -59,12 +55,11 @@ model Adoption {
   address    String   @db.Text
   experience String   @db.Text
   reason     String   @db.Text
-  status     String   @default("pending") // pending, approved, rejected
+  status     String   @default("pending")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  dog Dog @relation(fields: [dogId], references: [id])
-
+  @@index([dogId], map: "adoptions_dogId_fkey")
   @@map("adoptions")
 }
 
@@ -74,7 +69,7 @@ model BlogPost {
   slug        String    @unique
   content     String    @db.LongText
   excerpt     String    @db.Text
-  category    String // resgates, eventos, campanhas, transparencia
+  category    String
   image       String?
   published   Boolean   @default(false)
   publishedAt DateTime?
@@ -91,8 +86,8 @@ model Volunteer {
   phone        String
   availability String   @db.Text
   experience   String?  @db.Text
-  areas        String   @db.Text // JSON array das áreas de interesse
-  status       String   @default("pending") // pending, approved, active, inactive
+  areas        String   @db.Text
+  status       String   @default("pending")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -103,12 +98,12 @@ model Donation {
   id            Int      @id @default(autoincrement())
   amount        Decimal  @db.Decimal(10, 2)
   currency      String   @default("BRL")
-  paymentMethod String // pix, stripe, paypal
-  paymentId     String? // ID do pagamento no gateway
+  paymentMethod String
+  paymentId     String?
   donorName     String?
   donorEmail    String?
   recurring     Boolean  @default(false)
-  status        String   @default("pending") // pending, completed, failed, refunded
+  status        String   @default("pending")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -121,7 +116,7 @@ model Contact {
   email     String
   subject   String?
   message   String   @db.Text
-  status    String   @default("unread") // unread, read, replied
+  status    String   @default("unread")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -132,9 +127,9 @@ model Stats {
   id          Int      @id @default(autoincrement())
   dogsRescued Int      @default(0)
   dogsAdopted Int      @default(0)
-  volunteers  Int      @default(0)
-  donations   Decimal  @default(0) @db.Decimal(12, 2)
   updatedAt   DateTime @updatedAt
+  donations   Decimal  @default(0.00) @db.Decimal(12, 2)
+  volunteers  Int      @default(0)
 
   @@map("stats")
 }

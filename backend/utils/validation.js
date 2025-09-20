@@ -7,6 +7,7 @@ const dogSchema = Joi.object({
   size: Joi.string().valid('pequeno', 'médio', 'grande').required(),
   gender: Joi.string().valid('macho', 'fêmea').required(),
   breed: Joi.string().max(50).allow('', null),
+  animalType: Joi.string().valid('cachorro', 'gato').default('cachorro'),
   description: Joi.string().min(10).max(1000).required(),
   temperament: Joi.string().min(5).max(200).required(),
   vaccinated: Joi.boolean(),

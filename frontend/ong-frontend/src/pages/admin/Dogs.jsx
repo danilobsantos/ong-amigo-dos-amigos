@@ -76,7 +76,7 @@ const AdminDogs = () => {
         ...response.data.pagination
       }));
     } catch (error) {
-      console.error('Erro ao carregar cães:', error);
+      console.error('Erro ao carregar pets:', error);
     } finally {
       setLoading(false);
     }
@@ -108,7 +108,7 @@ const AdminDogs = () => {
     createSelectedFiles.forEach(f => f.url && URL.revokeObjectURL(f.url));
     setCreateSelectedFiles([]);
     setCreateFilesList([]);
-  createForm.reset({ name: '', age: '', size: 'médio', gender: 'macho', breed: '', description: '', temperament: '', vaccinated: false, neutered: false, available: 'true', imagesText: '' });
+  createForm.reset({ name: '', age: '', size: 'médio', gender: 'macho', breed: '', animalType: 'cachorro', description: '', temperament: '', vaccinated: false, neutered: false, available: 'true', imagesText: '' });
     setShowCreate(true);
   };
 
@@ -129,6 +129,7 @@ const AdminDogs = () => {
         size: data.size,
         gender: data.gender,
         breed: data.breed,
+        animalType: data.animalType,
         description: data.description,
         temperament: data.temperament,
         vaccinated: !!data.vaccinated,
@@ -157,6 +158,7 @@ const AdminDogs = () => {
       size: dog.size || 'médio',
       gender: dog.gender || 'macho',
       breed: dog.breed || '',
+      animalType: dog.animalType || 'cachorro',
       description: dog.description || '',
       temperament: dog.temperament || '',
       vaccinated: !!dog.vaccinated,
@@ -188,11 +190,12 @@ const AdminDogs = () => {
         size: data.size,
         gender: data.gender,
         breed: data.breed,
+        animalType: data.animalType,
         description: data.description,
         temperament: data.temperament,
         vaccinated: !!data.vaccinated,
         neutered: !!data.neutered,
-  available: (typeof data.available === 'string') ? (data.available === 'true') : !!data.available,
+        available: (typeof data.available === 'string') ? (data.available === 'true') : !!data.available,
         images
       };
       await dogsAPI.update(selectedDog.id, payload);
@@ -221,12 +224,12 @@ const AdminDogs = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gerenciar Cães</h1>
-            <p className="text-gray-600">Cadastre e gerencie os cães disponíveis para adoção</p>
+            <h1 className="text-3xl font-bold text-gray-900">Gerenciar Pets</h1>
+            <p className="text-gray-600">Cadastre e gerencie os pets disponíveis para adoção</p>
           </div>
           <Button className="btn-primary" onClick={openCreate}>
             <Plus className="w-4 h-4 mr-2" />
-            Novo Cão
+            Novo Cadastro
           </Button>
         </div>
 
@@ -250,10 +253,10 @@ const AdminDogs = () => {
           </CardContent>
         </Card>
 
-        {/* Lista de Cães */}
+        {/* Lista de Pets */}
         <Card>
           <CardHeader>
-            <CardTitle>Cães Cadastrados ({pagination.total})</CardTitle>
+            <CardTitle>Pets Cadastrados ({pagination.total})</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -284,7 +287,7 @@ const AdminDogs = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold">{dog.name}</h3>
-                        <Badge variant={dog.available ? 'default' : 'secondary'}>
+                        <Badge variant={dog.available ? 'default' : 'secondary'} className={dog.available ? 'bg-green-500 hover:bg-green-600 text-white' : ''}>
                           {dog.available ? 'Para adoção' : 'Adotado'}
                         </Badge>
                         <Badge variant="outline">{dog.size}</Badge>
@@ -356,39 +359,92 @@ const AdminDogs = () => {
 
             {/* Create Dog Dialog */}
             <Dialog open={showCreate} onOpenChange={setShowCreate}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Cadastrar Cão</DialogTitle>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                <DialogHeader className="flex-shrink-0">
+                  <DialogTitle>Cadastrar Pet</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={createForm.handleSubmit(onCreate)} className="space-y-4">
+                <div className="flex-1 overflow-y-auto pr-2">
+                  <form onSubmit={createForm.handleSubmit(onCreate)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <Label>Tipo de Animal</Label>
+                        <select {...createForm.register('animalType', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                          <option value="cachorro">Cachorro</option>
+                          <option value="gato">Gato</option>
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label>Disponibilidade</Label>
+                        <select {...createForm.register('available')} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                          <option value={'true'}>Para adoção</option>
+                          <option value={'false'}>Adotado</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <Label>Nome</Label>
+                        <Input {...createForm.register('name', { required: true })} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label>Idade</Label>
+                        <Input {...createForm.register('age', { required: true })} />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <Label>Porte</Label>
+                        <select {...createForm.register('size', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                          <option value="pequeno">Pequeno</option>
+                          <option value="médio">Médio</option>
+                          <option value="grande">Grande</option>
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label>Gênero</Label>
+                        <select {...createForm.register('gender', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                          <option value="macho">Macho</option>
+                          <option value="fêmea">Fêmea</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <Label>Raça</Label>
+                        <Input {...createForm.register('breed')} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label>Vacinado/Castrado</Label>
+                        <div className="flex items-center gap-4 h-9">
+                          <Controller
+                            control={createForm.control}
+                            name="vaccinated"
+                            defaultValue={false}
+                            render={({ field }) => (
+                              <div className="flex items-center gap-2">
+                                <Checkbox checked={!!field.value} onCheckedChange={(val) => field.onChange(!!val)} />
+                                <Label>Vacinado</Label>
+                              </div>
+                            )}
+                          />
+                          <Controller
+                            control={createForm.control}
+                            name="neutered"
+                            defaultValue={false}
+                            render={({ field }) => (
+                              <div className="flex items-center gap-2">
+                                <Checkbox checked={!!field.value} onCheckedChange={(val) => field.onChange(!!val)} />
+                                <Label>Castrado</Label>
+                              </div>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                   <div className="grid grid-cols-1 gap-4">
-                    <div className="flex flex-col gap-2">
-                      <Label>Nome</Label>
-                      <Input {...createForm.register('name', { required: true })} />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label>Idade</Label>
-                      <Input {...createForm.register('age', { required: true })} />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label>Porte</Label>
-                      <select {...createForm.register('size', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
-                        <option value="pequeno">Pequeno</option>
-                        <option value="médio">Médio</option>
-                        <option value="grande">Grande</option>
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label>Gênero</Label>
-                      <select {...createForm.register('gender', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
-                        <option value="macho">Macho</option>
-                        <option value="fêmea">Fêmea</option>
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label>Raça</Label>
-                      <Input {...createForm.register('breed')} />
-                    </div>
                     <div className="flex flex-col gap-2">
                       <Label>Descrição</Label>
                       <Textarea {...createForm.register('description', { required: true })} />
@@ -397,37 +453,8 @@ const AdminDogs = () => {
                       <Label>Temperamento</Label>
                       <Textarea {...createForm.register('temperament', { required: true })} />
                     </div>
-                    <div className="flex items-center gap-4">
-                      <Controller
-                        control={createForm.control}
-                        name="vaccinated"
-                        defaultValue={false}
-                        render={({ field }) => (
-                          <>
-                            <Checkbox checked={!!field.value} onCheckedChange={(val) => field.onChange(!!val)} />
-                            <Label>Vacinado</Label>
-                          </>
-                        )}
-                      />
-                      <Controller
-                        control={createForm.control}
-                        name="neutered"
-                        defaultValue={false}
-                        render={({ field }) => (
-                          <>
-                            <Checkbox checked={!!field.value} onCheckedChange={(val) => field.onChange(!!val)} />
-                            <Label>Castrado</Label>
-                          </>
-                        )}
-                      />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label>Disponibilidade</Label>
-                      <select {...createForm.register('available')} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
-                        <option value={'true'}>Para adoção</option>
-                        <option value={'false'}>Adotado</option>
-                      </select>
-                    </div>
+                    
+                    
 
                     <div className="flex flex-col gap-2">
                       <Label>Imagens</Label>
@@ -479,89 +506,113 @@ const AdminDogs = () => {
                       )}
                     </div>
                   </div>
-                  <DialogFooter>
-                    <div className="flex gap-2 w-full justify-end">
-                      <Button variant="ghost" onClick={() => setShowCreate(false)}>Cancelar</Button>
-                      <Button type="submit">Criar</Button>
-                    </div>
-                  </DialogFooter>
-                </form>
+                  </form>
+                </div>
+                <DialogFooter className="flex-shrink-0">
+                  <div className="flex gap-2 w-full justify-end">
+                    <Button variant="outline" onClick={() => setShowCreate(false)} className="min-w-[80px]">Cancelar</Button>
+                    <Button type="submit" onClick={createForm.handleSubmit(onCreate)} className="min-w-[80px]">Criar</Button>
+                  </div>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
 
             {/* Edit Dog Dialog */}
             <Dialog open={showEdit} onOpenChange={setShowEdit}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Editar Cão</DialogTitle>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                <DialogHeader className="flex-shrink-0">
+                  <DialogTitle>Editar Pet</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={editForm.handleSubmit(onUpdate)} className="space-y-4">
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="flex flex-col gap-2">
-                      <Label>Nome</Label>
-                      <Input {...editForm.register('name', { required: true })} />
+                <div className="flex-1 overflow-y-auto pr-2">
+                  <form onSubmit={editForm.handleSubmit(onUpdate)} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <Label>Tipo de Animal</Label>
+                        <select {...editForm.register('animalType', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                          <option value="cachorro">Cachorro</option>
+                          <option value="gato">Gato</option>
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label>Disponibilidade</Label>
+                        <select {...editForm.register('available')} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                          <option value={'true'}>Para adoção</option>
+                          <option value={'false'}>Adotado</option>
+                        </select>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <Label>Idade</Label>
-                      <Input {...editForm.register('age', { required: true })} />
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <Label>Nome</Label>
+                        <Input {...editForm.register('name', { required: true })} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label>Idade</Label>
+                        <Input {...editForm.register('age', { required: true })} />
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <Label>Porte</Label>
-                      <select {...editForm.register('size', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
-                        <option value="pequeno">Pequeno</option>
-                        <option value="médio">Médio</option>
-                        <option value="grande">Grande</option>
-                      </select>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <Label>Porte</Label>
+                        <select {...editForm.register('size', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                          <option value="pequeno">Pequeno</option>
+                          <option value="médio">Médio</option>
+                          <option value="grande">Grande</option>
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label>Gênero</Label>
+                        <select {...editForm.register('gender', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                          <option value="macho">Macho</option>
+                          <option value="fêmea">Fêmea</option>
+                        </select>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <Label>Gênero</Label>
-                      <select {...editForm.register('gender', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
-                        <option value="macho">Macho</option>
-                        <option value="fêmea">Fêmea</option>
-                      </select>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <Label>Raça</Label>
+                        <Input {...editForm.register('breed')} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label>Vacinado/Castrado</Label>
+                        <div className="flex items-center gap-4 h-9">
+                          <Controller
+                            control={editForm.control}
+                            name="vaccinated"
+                            defaultValue={false}
+                            render={({ field }) => (
+                              <div className="flex items-center gap-2">
+                                <Checkbox checked={!!field.value} onCheckedChange={(val) => field.onChange(!!val)} />
+                                <Label>Vacinado</Label>
+                              </div>
+                            )}
+                          />
+                          <Controller
+                            control={editForm.control}
+                            name="neutered"
+                            defaultValue={false}
+                            render={({ field }) => (
+                              <div className="flex items-center gap-2">
+                                <Checkbox checked={!!field.value} onCheckedChange={(val) => field.onChange(!!val)} />
+                                <Label>Castrado</Label>
+                              </div>
+                            )}
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <Label>Raça</Label>
-                      <Input {...editForm.register('breed')} />
-                    </div>
+                    
                     <div className="flex flex-col gap-2">
                       <Label>Descrição</Label>
                       <Textarea {...editForm.register('description', { required: true })} />
                     </div>
+                    
                     <div className="flex flex-col gap-2">
                       <Label>Temperamento</Label>
                       <Textarea {...editForm.register('temperament', { required: true })} />
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <Controller
-                        control={editForm.control}
-                        name="vaccinated"
-                        defaultValue={false}
-                        render={({ field }) => (
-                          <>
-                            <Checkbox checked={!!field.value} onCheckedChange={(val) => field.onChange(!!val)} />
-                            <Label>Vacinado</Label>
-                          </>
-                        )}
-                      />
-                      <Controller
-                        control={editForm.control}
-                        name="neutered"
-                        defaultValue={false}
-                        render={({ field }) => (
-                          <>
-                            <Checkbox checked={!!field.value} onCheckedChange={(val) => field.onChange(!!val)} />
-                            <Label>Castrado</Label>
-                          </>
-                        )}
-                      />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label>Disponibilidade</Label>
-                      <select {...editForm.register('available')} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
-                        <option value={'true'}>Para adoção</option>
-                        <option value={'false'}>Adotado</option>
-                      </select>
                     </div>
                     <div className="flex flex-col gap-2">
                       <Label>Imagens</Label>
@@ -629,80 +680,87 @@ const AdminDogs = () => {
                         ))}
                       </div>
                     </div>
+                  </form>
+                </div>
+                <DialogFooter className="flex-shrink-0">
+                  <div className="flex gap-2 w-full justify-end">
+                    <Button variant="outline" onClick={() => setShowEdit(false)} className="min-w-[80px]">Cancelar</Button>
+                    <Button type="submit" onClick={editForm.handleSubmit(onUpdate)} className="min-w-[80px]">Salvar</Button>
                   </div>
-                  <DialogFooter>
-                    <div className="flex gap-2 w-full justify-end">
-                      <Button variant="ghost" onClick={() => setShowEdit(false)}>Cancelar</Button>
-                      <Button type="submit">Salvar</Button>
-                    </div>
-                  </DialogFooter>
-                </form>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
 
             {/* View Dog Dialog */}
             <Dialog open={showView} onOpenChange={setShowView}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Visualizar Cão</DialogTitle>
+              <DialogContent className="!max-w-2xl max-h-[90vh] h-[32rem] overflow-hidden flex flex-col">
+                <DialogHeader className="flex-shrink-0">
+                  <DialogTitle>Visualizar Pet</DialogTitle>
                 </DialogHeader>
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="md:w-44 w-full flex-shrink-0">
-                    <img
-                      src={normalizeImageUrl(selectedDog?.images?.[0])}
-                      alt={selectedDog?.name}
-                      className="w-full h-44 md:h-44 object-cover rounded-md border"
-                    />
-                  </div>
-
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="text-2xl font-bold">{selectedDog?.name}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{selectedDog?.age} • {selectedDog?.breed || 'SRD'}</p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <Badge variant={selectedDog?.available ? 'default' : 'secondary'}>{selectedDog?.available ? 'Para adoção' : 'Adotado'}</Badge>
-                          <Badge variant="outline">{selectedDog?.size}</Badge>
-                          <Badge variant="outline">{selectedDog?.gender}</Badge>
+                <div className="flex-1 overflow-y-auto pr-2">
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Imagem do Pet */}
+                    <div className="lg:w-50 w-full flex-shrink-0">
+                      <div className="relative">
+                        <img
+                          src={normalizeImageUrl(selectedDog?.images?.[0])}
+                          alt={selectedDog?.name}
+                          className="w-full h-50 object-cover rounded-lg border shadow-sm"
+                        />
+                        <div className="absolute top-3 right-3">
+                          <Badge variant={selectedDog?.available ? 'default' : 'secondary'} className={`text-xs ${selectedDog?.available ? 'bg-green-500 hover:bg-green-600 text-white' : ''}`}>
+                            {selectedDog?.available ? 'Para adoção' : 'Adotado'}
+                          </Badge>
                         </div>
                       </div>
+                      
                     </div>
 
-                    <div className="mt-4">
-                      <h4 className="font-semibold mb-1">Descrição</h4>
-                      <p className="text-sm text-gray-700">{selectedDog?.description || <span className="text-gray-500">Sem descrição informada</span>}</p>
-                    </div>
+                    {/* Informações do Pet */}
+                    <div className="flex-1 space-y-6">
+                      {/* Cabeçalho com nome e badges */}
+                      <div>
+                        <h2 className="text-3xl font-bold text-gray-900 mb-2">{selectedDog?.name}</h2>
+                        <p className="text-lg text-gray-600 mb-4">{selectedDog?.age} • {selectedDog?.breed || 'SRD'}</p>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="capitalize">
+                            {selectedDog?.animalType || 'cachorro'}
+                          </Badge>
+                          <Badge variant="outline" className="capitalize">
+                            {selectedDog?.size}
+                          </Badge>
+                          <Badge variant="outline" className="capitalize">
+                            {selectedDog?.gender}
+                          </Badge>
+                          <Badge variant={selectedDog?.vaccinated ? 'default' : 'secondary'}>
+                            {selectedDog?.vaccinated ? 'Vacinado' : 'Não vacinado'}
+                          </Badge>
+                          <Badge variant={selectedDog?.neutered ? 'default' : 'secondary'}>
+                            {selectedDog?.neutered ? 'Castrado' : 'Não castrado'}
+                          </Badge>
+                        </div>
+                      </div>
 
-                    <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+                      {/* Descrição */}
                       <div>
-                        <p className="text-xs text-gray-500">Temperamento</p>
-                        <p className="mt-1 text-gray-800">{selectedDog?.temperament || '-'}</p>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Descrição</h3>
+                        <p className="text-gray-700 leading-relaxed">
+                          {selectedDog?.description || <span className="text-gray-500 italic">Sem descrição informada</span>}
+                        </p>
                       </div>
+
+                      {/* Temperamento */}
                       <div>
-                        <p className="text-xs text-gray-500">Raça</p>
-                        <p className="mt-1 text-gray-800">{selectedDog?.breed || 'SRD'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Vacinado</p>
-                        <p className="mt-1 text-gray-800">{selectedDog?.vaccinated ? 'Sim' : 'Não'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Castrado</p>
-                        <p className="mt-1 text-gray-800">{selectedDog?.neutered ? 'Sim' : 'Não'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Disponibilidade</p>
-                        <p className="mt-1 text-gray-800">{selectedDog?.available ? 'Para adoção' : 'Adotado'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Idade</p>
-                        <p className="mt-1 text-gray-800">{selectedDog?.age || '-'}</p>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Temperamento</h3>
+                        <p className="text-gray-700 leading-relaxed">
+                          {selectedDog?.temperament || <span className="text-gray-500 italic">Sem informação sobre temperamento</span>}
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
-                <DialogFooter>
-                    <div className="flex gap-2 w-full justify-end">
+                <DialogFooter className="flex-shrink-0">
+                  <div className="flex gap-2 w-full justify-end">
                     <Button className="btn-primary" onClick={() => setShowView(false)}>Fechar</Button>
                   </div>
                 </DialogFooter>

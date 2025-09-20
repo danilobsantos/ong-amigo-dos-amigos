@@ -36,6 +36,7 @@ router.get('/', async (req, res) => {
           size: true,
           gender: true,
           breed: true,
+          animalType: true,
           temperament: true,
           images: true,
           vaccinated: true,

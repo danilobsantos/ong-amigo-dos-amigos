@@ -124,7 +124,7 @@
 /* Estilos personalizados para ONG Amigo dos Amigos */
 @layer components {
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg;
+    @apply bg-primary text-primary-foreground hover:bg-primary/80 hover:scale-105 px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-xl;
   }
   
   .btn-accent {
