@@ -18,7 +18,6 @@ const Header = () => {
     { name: 'Voluntariado', href: '/voluntariado' },
     { name: 'Blog', href: '/blog' },
     { name: 'Prestação de Contas', href: '/prestacao-contas' },
-    { name: 'Contato', href: '/contato' },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -54,7 +53,7 @@ const Header = () => {
             <Button asChild variant="outline" size="lg">
               <Link to="/contato">
                 <MessageCircleIcon className="w-4 h-4 mr-2" />
-                Whatsapp
+                Contato
               </Link>
             </Button>
             <Button asChild className="btn-accent">
