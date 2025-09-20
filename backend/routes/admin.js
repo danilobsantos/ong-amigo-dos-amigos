@@ -19,6 +19,7 @@ router.get('/dashboard', async (req, res) => {
       totalVolunteers,
       unreadContacts,
       totalDonations,
+      socialCastrations,
       recentDonations
     ] = await Promise.all([
       prisma.dog.count(),
@@ -30,6 +31,7 @@ router.get('/dashboard', async (req, res) => {
         where: { status: 'completed' },
         _sum: { amount: true }
       }),
+      prisma.socialCastration.count({ where: { status: 'pending' } }),
       prisma.donation.findMany({
         where: { status: 'completed' },
         take: 5,
@@ -44,7 +46,8 @@ router.get('/dashboard', async (req, res) => {
         pendingAdoptions,
         totalVolunteers,
         unreadContacts,
-        totalDonations: totalDonations._sum.amount || 0
+        totalDonations: totalDonations._sum.amount || 0,
+        socialCastrations
       },
       recentDonations
     });

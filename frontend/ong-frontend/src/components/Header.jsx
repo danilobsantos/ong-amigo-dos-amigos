@@ -14,10 +14,10 @@ const Header = () => {
     { name: 'Início', href: '/' },
     { name: 'Sobre Nós', href: '/sobre' },
     { name: 'Adoção', href: '/adocao' },
-    { name: 'Doações', href: '/doacoes' },
     { name: 'Voluntariado', href: '/voluntariado' },
-    { name: 'Blog', href: '/blog' },
+    { name: 'Castração Social', href: '/castracao-social' },
     { name: 'Prestação de Contas', href: '/prestacao-contas' },
+    { name: 'Blog', href: '/blog' },
   ];
 
   const isActive = (path) => location.pathname === path;

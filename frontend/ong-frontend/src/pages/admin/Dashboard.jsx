@@ -10,7 +10,8 @@ import {
   PawPrint,
   MessageSquare,
   FileText,
-  UserCheck
+  UserCheck,
+  Scissors
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,8 @@ const Dashboard = () => {
       pendingAdoptions: 0,
       totalVolunteers: 0,
       unreadContacts: 0,
-      totalDonations: 0
+      totalDonations: 0,
+      socialCastrations: 0
     },
     recentDonations: []
   });
@@ -103,12 +105,12 @@ const Dashboard = () => {
       link: '/admin/contatos'
     },
     {
-      title: 'Total Arrecadado',
-      value: `R$ ${Number(dashboardData.stats.totalDonations).toLocaleString('pt-BR')}`,
-      icon: DollarSign,
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-100',
-      link: '/admin/doacoes'
+      title: 'Castração Pendente',
+      value: dashboardData.stats.socialCastrations,
+      icon: Scissors,
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-100',
+      link: '/admin/castracao-social'
     }
   ];
 

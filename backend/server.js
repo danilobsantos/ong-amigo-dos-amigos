@@ -45,6 +45,7 @@ app.use('/api/seo', require('./routes/seo'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/financial-reports', require('./routes/financial-reports'));
+app.use('/api/social-castration', require('./routes/social-castration'));
 
 // Rota de health check
 app.get('/api/health', (req, res) => {

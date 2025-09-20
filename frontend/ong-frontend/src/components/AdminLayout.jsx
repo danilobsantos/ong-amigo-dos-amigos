@@ -13,7 +13,8 @@ import {
   MessageSquare, 
   LogOut,
   Home,
-  Receipt
+  Receipt,
+  Scissors
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
@@ -34,6 +35,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Doações', href: '/admin/doacoes', icon: DollarSign },
     { name: 'Contatos', href: '/admin/contatos', icon: MessageSquare },
     { name: 'Prestação de Contas', href: '/admin/prestacao-contas', icon: Receipt },
+    { name: 'Castração Social', href: '/admin/castracao-social', icon: Scissors },
   ];
 
   const isActive = (path) => location.pathname === path;

@@ -154,3 +154,44 @@ model FinancialReport {
 
   @@map("financial_reports")
 }
+
+model SocialCastration {
+  id                  Int      @id @default(autoincrement())
+  // Dados do Animal
+  animalName          String
+  animalSize          String // pequeno, médio, grande
+  animalAge           String
+  animalGender        String // macho, fêmea
+  animalSpecies       String // cão, gato
+  animalBreed         String?
+  animalColor         String
+  animalTemperament   String
+  dogRabiesVaccinated Boolean? // Para cães
+  dogV10Vaccinated    Boolean? // Para cães  
+  catV3V4V5Vaccinated Boolean? // Para gatos
+  catRabiesVaccinated Boolean? // Para gatos
+  animalPhoto         String? // URL da foto
+
+  // Dados do Tutor
+  tutorName         String
+  tutorBirthDate    DateTime
+  tutorRG           String
+  tutorCPF          String
+  tutorAddress      String
+  tutorNumber       String
+  tutorNeighborhood String
+  tutorPhone        String
+  householdSize     Int // Quantas pessoas moram
+  totalAnimals      Int // Quantos animais no total
+  hasChildren       Boolean
+  childrenCount     Int? // Se tem filhos, quantos
+  monthlyIncome     String // Renda mensal familiar
+  agreesLowIncome   Boolean // Concorda que é baixa renda
+
+  status          String   @default("pending") // pending, approved, rejected
+  rejectionReason String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("social_castrations")
+}

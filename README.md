@@ -11,6 +11,8 @@ Este projeto foi desenvolvido para fornecer uma plataforma digital completa para
 - **Plataforma de doações** com PIX e cartão de crédito
 - **Blog** para compartilhar histórias e informações
 - **Sistema de voluntariado** para cadastro de interessados
+- **Castração social** formulário para solicitação de castração a preço social
+- **Prestação de contas** transparência financeira com relatórios públicos
 - **Área administrativa** para gerenciar todo o conteúdo
 
 ## 🚀 Tecnologias Utilizadas
@@ -180,6 +182,8 @@ npx prisma generate        # Gerar cliente Prisma
 - **Adoção** - Catálogo de cães com filtros e busca
 - **Doações** - Sistema completo de doações (PIX/Cartão)
 - **Voluntariado** - Formulário para cadastro de voluntários
+- **Castração Social** - Solicitação de castração a preço social
+- **Prestação de Contas** - Relatórios financeiros públicos
 - **Blog** - Artigos sobre cuidados e histórias de sucesso
 - **Contato** - Formulário e informações de contato
 
@@ -191,6 +195,8 @@ npx prisma generate        # Gerar cliente Prisma
 - **Blog** - Criar e editar posts
 - **Voluntários** - Gerenciar cadastros de voluntários
 - **Doações** - Visualizar histórico de doações
+- **Castração Social** - Gerenciar solicitações de castração
+- **Prestação de Contas** - Upload e gerenciamento de relatórios financeiros
 - **Contatos** - Gerenciar mensagens recebidas
 
 ### 💳 Sistema de Pagamentos
@@ -349,6 +355,19 @@ pnpm run test:e2e
 - `POST /api/payments/pix/generate-qr` - Gerar PIX QR Code
 - `GET /api/donations/stats` - Estatísticas de doações
 
+#### Castração Social
+- `POST /api/social-castration` - Solicitar castração social
+- `GET /api/social-castration` - Listar solicitações (admin)
+- `PUT /api/social-castration/:id/status` - Atualizar status (admin)
+- `DELETE /api/social-castration/:id` - Excluir solicitação (admin)
+
+#### Prestação de Contas
+- `GET /api/financial-reports/public` - Listar relatórios públicos
+- `GET /api/financial-reports/public/download/:id` - Download público
+- `POST /api/financial-reports/upload` - Upload de relatório (admin)
+- `GET /api/financial-reports` - Listar relatórios (admin)
+- `DELETE /api/financial-reports/:id` - Excluir relatório (admin)
+
 #### Blog
 - `GET /api/blog` - Listar posts publicados
 - `GET /api/blog/:slug` - Detalhes de um post
@@ -414,7 +433,8 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - [ ] Sistema de doação recorrente via cartão de crédito
 - [ ] Integração com redes sociais
 - [ ] Sistema de eventos
-- [ ] Sistema de prestação de contas
+- [x] Sistema de castração social
+- [x] Sistema de prestação de contas
 
 ### Melhorias Contínuas
 - [ ] Testes automatizados completos
