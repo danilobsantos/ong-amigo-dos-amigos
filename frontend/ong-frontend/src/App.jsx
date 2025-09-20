@@ -12,6 +12,7 @@ import Volunteer from './pages/Volunteer';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import Contact from './pages/Contact';
+import FinancialReports from './pages/FinancialReports';
 import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminDogs from './pages/admin/Dogs';
@@ -21,6 +22,7 @@ import AdminVolunteers from './pages/admin/Volunteers';
 import AdminDonations from './pages/admin/Donations';
 import AdminContacts from './pages/admin/Contacts';
 import AdminUsers from './pages/admin/Users';
+import AdminFinancialReports from './pages/admin/FinancialReports';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -45,6 +47,7 @@ function App() {
                     <Route path="/blog" element={<Blog />} />
                     <Route path="/blog/:slug" element={<BlogPost />} />
                     <Route path="/contato" element={<Contact />} />
+                    <Route path="/prestacao-contas" element={<FinancialReports />} />
                   </Routes>
                 </main>
                 <Footer />
@@ -69,6 +72,7 @@ function App() {
                   <Route path="/voluntarios" element={<AdminVolunteers />} />
                   <Route path="/doacoes" element={<AdminDonations />} />
                   <Route path="/contatos" element={<AdminContacts />} />
+                  <Route path="/prestacao-contas" element={<AdminFinancialReports />} />
                 </Routes>
               </ProtectedRoute>
             } />

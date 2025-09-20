@@ -114,6 +114,18 @@ export const usersAPI = {
   delete: (id) => api.delete(`/users/${id}`)
 };
 
+// Financial Reports (admin)
+export const financialReportsAPI = {
+  getAll: (params = {}) => api.get('/financial-reports', { params }),
+  upload: (formData) => api.post('/financial-reports/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  download: (id) => api.get(`/financial-reports/download/${id}`, {
+    responseType: 'blob'
+  }),
+  delete: (id) => api.delete(`/financial-reports/${id}`)
+};
+
 // Uploads
 export const uploadsAPI = {
   uploadImages: (formData) => api.post('/uploads', formData, {

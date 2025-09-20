@@ -19,8 +19,8 @@ app.use(cors({
 }));
 
 // Parsing de JSON e URL encoded
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Servir arquivos estáticos (uploads)
 // Allow cross-origin resource policy for these assets so frontend at a different origin can embed them
@@ -44,6 +44,7 @@ app.use('/api/whatsapp', require('./routes/whatsapp'));
 app.use('/api/seo', require('./routes/seo'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/financial-reports', require('./routes/financial-reports'));
 
 // Rota de health check
 app.get('/api/health', (req, res) => {

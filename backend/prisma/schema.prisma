@@ -141,3 +141,16 @@ model Stats {
 
   @@map("stats")
 }
+
+model FinancialReport {
+  id         Int      @id @default(autoincrement())
+  period     String // e.g., "2025-01" ou "Janeiro 2025"
+  fileName   String
+  filePath   String
+  fileSize   Int?
+  uploadedBy String? // Nome do admin que fez upload
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("financial_reports")
+}
