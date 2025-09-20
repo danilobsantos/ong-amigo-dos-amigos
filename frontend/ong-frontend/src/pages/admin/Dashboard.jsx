@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Heart, 
   Users, 
@@ -19,6 +19,7 @@ import { adminAPI } from '../../lib/api';
 import AdminLayout from '../../components/AdminLayout';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState({
     stats: {
       totalDogs: 0,
@@ -47,9 +48,22 @@ const Dashboard = () => {
     }
   };
 
+  const handleQuickAction = (action) => {
+    if (action.action === 'openCreateModal') {
+      // Navigate to dogs page and dispatch event to open create modal
+      navigate('/admin/caes');
+      // Use setTimeout to ensure the page has loaded before dispatching the event
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('open-create-dog-modal'));
+      }, 100);
+    } else if (action.link) {
+      navigate(action.link);
+    }
+  };
+
   const statsCards = [
     {
-      title: 'Total de Cães',
+      title: 'Pets Cadastrados',
       value: dashboardData.stats.totalDogs,
       icon: PawPrint,
       color: 'text-blue-600',
@@ -57,7 +71,7 @@ const Dashboard = () => {
       link: '/admin/caes'
     },
     {
-      title: 'Cães Disponíveis',
+      title: 'Pets para adoção',
       value: dashboardData.stats.availableDogs,
       icon: Heart,
       color: 'text-green-600',
@@ -100,11 +114,11 @@ const Dashboard = () => {
 
   const quickActions = [
     {
-      title: 'Cadastrar Novo Cão',
-      description: 'Adicionar um novo cão para adoção',
+      title: 'Cadastrar Pet',
+      description: 'Cadastrar pet para adoção',
       icon: PawPrint,
       color: 'bg-blue-500',
-      link: '/admin/caes'
+      action: 'openCreateModal'
     },
     {
       title: 'Criar Post no Blog',
@@ -192,9 +206,19 @@ const Dashboard = () => {
                       <h4 className="font-medium">{action.title}</h4>
                       <p className="text-sm text-gray-600">{action.description}</p>
                     </div>
-                    <Button asChild variant="ghost" size="sm">
-                      <Link to={action.link}>Ir</Link>
-                    </Button>
+                    {action.link ? (
+                      <Button asChild variant="ghost" size="sm">
+                        <Link to={action.link}>Ir</Link>
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleQuickAction(action)}
+                      >
+                        Ir
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -261,7 +285,7 @@ const Dashboard = () => {
                 <div className="text-2xl font-bold text-blue-600">
                   {dashboardData.stats.totalDogs}
                 </div>
-                <p className="text-sm text-gray-600">Cães Cadastrados</p>
+                <p className="text-sm text-gray-600">Pets Cadastrados</p>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">

@@ -8,9 +8,18 @@ const router = express.Router();
 // Criar solicitação de adoção (público)
 router.post('/', async (req, res) => {
   try {
+    console.log('Received adoption data:', req.body);
+    
     const { error, value } = adoptionSchema.validate(req.body);
     if (error) {
+      console.log('Validation error:', error.details[0].message);
       return res.status(400).json({ error: error.details[0].message });
+    }
+
+    // Clean phone number - remove all non-numeric characters
+    if (value.phone) {
+      value.phone = value.phone.replace(/\D/g, '');
+      console.log('Cleaned phone:', value.phone);
     }
 
     // Verificar se o cão existe e está disponível
@@ -125,7 +134,7 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
 router.patch('/:id/status', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, reason } = req.body;
 
     if (!['pending', 'approved', 'rejected'].includes(status)) {
       return res.status(400).json({ error: 'Status inválido' });
@@ -134,22 +143,39 @@ router.patch('/:id/status', authenticateToken, requireAdmin, async (req, res) =>
     // Fetch existing adoption to detect previous status
     const existing = await prisma.adoption.findUnique({ where: { id: parseInt(id) } });
 
+    const updateData = { status };
+    if (reason && status === 'rejected') {
+      updateData.rejectionReason = reason;
+    }
+
     const adoption = await prisma.adoption.update({
       where: { id: parseInt(id) },
-      data: { status }
+      data: updateData
     });
 
-    // If status changed to approved, mark dog as not available.
+    // If status changed to approved, mark dog as adopted and not available.
     // If status was approved and now changed away, mark dog as available again.
     try {
       if (status === 'approved') {
-        await prisma.dog.update({ where: { id: adoption.dogId }, data: { available: false } });
+        await prisma.dog.update({ 
+          where: { id: adoption.dogId }, 
+          data: { 
+            available: false,
+            status: 'adopted'
+          }
+        });
       } else if (existing && existing.status === 'approved' && status !== 'approved') {
-        // revert availability if previously approved
-        await prisma.dog.update({ where: { id: adoption.dogId }, data: { available: true } });
+        // revert availability and status if previously approved
+        await prisma.dog.update({ 
+          where: { id: adoption.dogId }, 
+          data: { 
+            available: true,
+            status: 'available'
+          }
+        });
       }
     } catch (e) {
-      console.warn('Erro ao atualizar disponibilidade do cão após mudança de status:', e.message);
+      console.warn('Erro ao atualizar status do cão após mudança de status da adoção:', e.message);
     }
 
     // Re-fetch adoption with updated dog (and its images)

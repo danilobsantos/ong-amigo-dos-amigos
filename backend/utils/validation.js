@@ -21,7 +21,7 @@ const adoptionSchema = Joi.object({
   dogId: Joi.number().integer().positive().required(),
   name: Joi.string().min(2).max(100).required(),
   email: Joi.string().email().required(),
-  phone: Joi.string().min(10).max(15).required(),
+  phone: Joi.string().min(10).max(20).required(), // Increased max to handle formatted phones
   address: Joi.string().min(10).max(500).required(),
   experience: Joi.string().min(10).max(1000).required(),
   reason: Joi.string().min(10).max(1000).required()

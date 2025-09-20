@@ -31,9 +31,13 @@ model Dog {
   vaccinated  Boolean  @default(false)
   neutered    Boolean  @default(false)
   available   Boolean  @default(true)
+  status      String   @default("available") // available, adopted, reserved
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   animalType  String   @default("cachorro")
+
+  images    DogImage[]
+  adoptions Adoption[]
 
   @@map("dogs")
 }
@@ -42,22 +46,26 @@ model DogImage {
   id    Int    @id @default(autoincrement())
   url   String
   dogId Int
+  dog   Dog    @relation(fields: [dogId], references: [id], onDelete: Cascade)
 
   @@index([dogId], map: "DogImage_dogId_fkey")
 }
 
 model Adoption {
-  id         Int      @id @default(autoincrement())
-  dogId      Int
-  name       String
-  email      String
-  phone      String
-  address    String   @db.Text
-  experience String   @db.Text
-  reason     String   @db.Text
-  status     String   @default("pending")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id              Int      @id @default(autoincrement())
+  dogId           Int
+  name            String
+  email           String
+  phone           String
+  address         String   @db.Text
+  experience      String   @db.Text
+  reason          String   @db.Text
+  status          String   @default("pending")
+  rejectionReason String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  dog Dog @relation(fields: [dogId], references: [id])
 
   @@index([dogId], map: "adoptions_dogId_fkey")
   @@map("adoptions")

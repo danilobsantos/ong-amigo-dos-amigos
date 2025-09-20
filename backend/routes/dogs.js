@@ -10,16 +10,26 @@ const router = express.Router();
 // Listar cães disponíveis para adoção (público)
 router.get('/', async (req, res) => {
   try {
-    const { size, gender, search, page = 1, limit = 12 } = req.query;
+    const { size, gender, search, page = 1, limit = 12, available, animalType } = req.query;
     
   const where = {};
 
-  // If query param all=true is NOT provided, default to only available dogs (public behavior)
-  if (req.query.all !== 'true') where.available = true;
+  // Handle availability filter
+  if (req.query.all === 'true') {
+    // Show all dogs regardless of availability
+  } else if (available !== undefined) {
+    // Convert string to boolean and filter by availability
+    where.available = available === 'true';
+  } else {
+    // Default behavior: show only available dogs (not adopted)
+    where.available = true;
+    where.status = { not: 'adopted' };
+  }
 
   if (size) where.size = size;
   if (gender) where.gender = gender;
   if (search) where.name = { contains: search };
+  if (animalType) where.animalType = animalType;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -29,38 +39,19 @@ router.get('/', async (req, res) => {
         skip,
         take: parseInt(limit),
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          name: true,
-          age: true,
-          size: true,
-          gender: true,
-          breed: true,
-          animalType: true,
-          temperament: true,
-          images: true,
-          vaccinated: true,
-      neutered: true,
-      description: true,
-      available: true
+        include: {
+          images: true
         }
       }),
       prisma.dog.count({ where })
     ]);
 
-    // Normalize images: if images is an array of DogImage objects, map to url strings;
-    // otherwise (legacy), try to parse JSON stored as string.
+    // Normalize images: convert DogImage objects to url strings
     const dogsWithImages = dogs.map(dog => ({
       ...dog,
       images: Array.isArray(dog.images)
-        ? dog.images.map(img => (img && img.url ? img.url : String(img)))
-        : (() => {
-            try {
-              return JSON.parse(dog.images || '[]');
-            } catch (e) {
-              return [];
-            }
-          })()
+        ? dog.images.map(img => img.url)
+        : []
     }));
 
     res.json({
@@ -96,14 +87,8 @@ router.get('/:id', async (req, res) => {
     const dogWithImages = {
       ...dog,
       images: Array.isArray(dog.images)
-        ? dog.images.map(img => (img && img.url ? img.url : String(img)))
-        : (() => {
-            try {
-              return JSON.parse(dog.images || '[]');
-            } catch (e) {
-              return [];
-            }
-          })()
+        ? dog.images.map(img => img.url)
+        : []
     };
 
     res.json(dogWithImages);

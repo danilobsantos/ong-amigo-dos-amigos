@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,8 @@ const AdminDogs = () => {
   const [dogs, setDogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'available', 'adopted'
+  const [animalTypeFilter, setAnimalTypeFilter] = useState('all'); // 'all', 'cachorro', 'gato'
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -48,6 +50,8 @@ const AdminDogs = () => {
   const [showEdit, setShowEdit] = useState(false);
   const [showView, setShowView] = useState(false);
   const [selectedDog, setSelectedDog] = useState(null);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
 
   const createForm = useForm();
   const editForm = useForm();
@@ -65,9 +69,22 @@ const AdminDogs = () => {
       const params = {
         page: pagination.page,
         limit: pagination.limit,
-        search: searchTerm || undefined,
-        all: true
+        search: searchTerm || undefined
       };
+
+      // Handle status filter
+      if (statusFilter === 'all') {
+        params.all = 'true'; // Show all dogs (both available and adopted)
+      } else if (statusFilter === 'available') {
+        params.available = true; // Show only available dogs
+      } else if (statusFilter === 'adopted') {
+        params.available = false; // Show only adopted dogs
+      }
+
+      // Handle animal type filter
+      if (animalTypeFilter !== 'all') {
+        params.animalType = animalTypeFilter;
+      }
 
       const response = await dogsAPI.getAll(params);
       setDogs(response.data.dogs || []);
@@ -80,7 +97,7 @@ const AdminDogs = () => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, pagination.limit, searchTerm]);
+  }, [pagination.page, pagination.limit, searchTerm, statusFilter, animalTypeFilter]);
 
 
   React.useEffect(() => {
@@ -88,7 +105,15 @@ const AdminDogs = () => {
     // Listener para evento global de reload
     const handler = () => loadDogs();
     window.addEventListener('reload-dogs', handler);
-    return () => window.removeEventListener('reload-dogs', handler);
+    
+    // Listener para abrir modal de criação vindo do dashboard
+    const openCreateHandler = () => openCreate();
+    window.addEventListener('open-create-dog-modal', openCreateHandler);
+    
+    return () => {
+      window.removeEventListener('reload-dogs', handler);
+      window.removeEventListener('open-create-dog-modal', openCreateHandler);
+    };
   }, [loadDogs]);
 
   const handleDelete = async (id) => {
@@ -114,6 +139,7 @@ const AdminDogs = () => {
 
   const onCreate = async (data) => {
     try {
+      setCreateLoading(true);
       let images = [];
       // If there are selected files, upload them
       if (createSelectedFiles && createSelectedFiles.length > 0) {
@@ -147,6 +173,8 @@ const AdminDogs = () => {
     } catch (err) {
       console.error('Erro ao criar cão:', err);
       alert(err.response?.data?.error || 'Erro ao criar cão');
+    } finally {
+      setCreateLoading(false);
     }
   };
 
@@ -172,6 +200,7 @@ const AdminDogs = () => {
 
   const onUpdate = async (data) => {
     try {
+      setEditLoading(true);
       // Start with the existing images that the admin did not remove
       let images = Array.isArray(editExistingImages) ? [...editExistingImages] : [];
 
@@ -206,6 +235,8 @@ const AdminDogs = () => {
     } catch (err) {
       console.error('Erro ao atualizar cão:', err);
       alert(err.response?.data?.error || 'Erro ao atualizar cão');
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -246,7 +277,33 @@ const AdminDogs = () => {
                   className="pl-10"
                 />
               </div>
-              <Button variant="outline" onClick={() => setSearchTerm('')}>
+              <div className="w-48">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full h-9 px-3 py-1 text-sm border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
+                >
+                  <option value="all">Todos os pets</option>
+                  <option value="available">Para adoção</option>
+                  <option value="adopted">Adotados</option>
+                </select>
+              </div>
+              <div className="w-40">
+                <select
+                  value={animalTypeFilter}
+                  onChange={(e) => setAnimalTypeFilter(e.target.value)}
+                  className="w-full h-9 px-3 py-1 text-sm border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
+                >
+                  <option value="all">Todos</option>
+                  <option value="cachorro">Cães</option>
+                  <option value="gato">Gatos</option>
+                </select>
+              </div>
+              <Button variant="outline" onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('all');
+                setAnimalTypeFilter('all');
+              }}>
                 Limpar
               </Button>
             </div>
@@ -287,7 +344,7 @@ const AdminDogs = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold">{dog.name}</h3>
-                        <Badge variant={dog.available ? 'default' : 'secondary'} className={dog.available ? 'bg-green-500 hover:bg-green-600 text-white' : ''}>
+                        <Badge variant={dog.available ? 'default' : 'secondary'} className={dog.available ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'}>
                           {dog.available ? 'Para adoção' : 'Adotado'}
                         </Badge>
                         <Badge variant="outline">{dog.size}</Badge>
@@ -359,7 +416,7 @@ const AdminDogs = () => {
 
             {/* Create Dog Dialog */}
             <Dialog open={showCreate} onOpenChange={setShowCreate}>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+              <DialogContent className="!max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <DialogHeader className="flex-shrink-0">
                   <DialogTitle>Cadastrar Pet</DialogTitle>
                 </DialogHeader>
@@ -510,8 +567,29 @@ const AdminDogs = () => {
                 </div>
                 <DialogFooter className="flex-shrink-0">
                   <div className="flex gap-2 w-full justify-end">
-                    <Button variant="outline" onClick={() => setShowCreate(false)} className="min-w-[80px]">Cancelar</Button>
-                    <Button type="submit" onClick={createForm.handleSubmit(onCreate)} className="min-w-[80px]">Criar</Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowCreate(false)} 
+                      className="min-w-[80px]"
+                      disabled={createLoading}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      onClick={createForm.handleSubmit(onCreate)} 
+                      className="min-w-[80px]"
+                      disabled={createLoading}
+                    >
+                      {createLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        'Criar'
+                      )}
+                    </Button>
                   </div>
                 </DialogFooter>
               </DialogContent>
@@ -519,7 +597,7 @@ const AdminDogs = () => {
 
             {/* Edit Dog Dialog */}
             <Dialog open={showEdit} onOpenChange={setShowEdit}>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+              <DialogContent className="!max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <DialogHeader className="flex-shrink-0">
                   <DialogTitle>Editar Pet</DialogTitle>
                 </DialogHeader>
@@ -684,8 +762,29 @@ const AdminDogs = () => {
                 </div>
                 <DialogFooter className="flex-shrink-0">
                   <div className="flex gap-2 w-full justify-end">
-                    <Button variant="outline" onClick={() => setShowEdit(false)} className="min-w-[80px]">Cancelar</Button>
-                    <Button type="submit" onClick={editForm.handleSubmit(onUpdate)} className="min-w-[80px]">Salvar</Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowEdit(false)} 
+                      className="min-w-[80px]"
+                      disabled={editLoading}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      onClick={editForm.handleSubmit(onUpdate)} 
+                      className="min-w-[80px]"
+                      disabled={editLoading}
+                    >
+                      {editLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        'Salvar'
+                      )}
+                    </Button>
                   </div>
                 </DialogFooter>
               </DialogContent>
@@ -708,7 +807,7 @@ const AdminDogs = () => {
                           className="w-full h-50 object-cover rounded-lg border shadow-sm"
                         />
                         <div className="absolute top-3 right-3">
-                          <Badge variant={selectedDog?.available ? 'default' : 'secondary'} className={`text-xs ${selectedDog?.available ? 'bg-green-500 hover:bg-green-600 text-white' : ''}`}>
+                          <Badge variant={selectedDog?.available ? 'default' : 'secondary'} className={`text-xs ${selectedDog?.available ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'}`}>
                             {selectedDog?.available ? 'Para adoção' : 'Adotado'}
                           </Badge>
                         </div>

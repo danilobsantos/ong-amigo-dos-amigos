@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Heart, Shield, Stethoscope, Calendar, User, Phone, Mail, MapPin } from 'lucide-react';
+import { ArrowLeft, Heart, Shield, Stethoscope, Calendar, User, Phone, Mail, MapPin, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
 import { dogsAPI, adoptionsAPI } from '../lib/api';
 
@@ -14,12 +21,31 @@ const DogDetail = () => {
   const { id } = useParams();
   const [dog, setDog] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm();
+
+  const formatPhone = (value) => {
+    // Remove tudo que não for número
+    const numbers = value.replace(/\D/g, '');
+    
+    // Aplica a máscara (XX) XXXXX-XXXX
+    if (numbers.length <= 2) {
+      return numbers;
+    } else if (numbers.length <= 7) {
+      return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+    } else {
+      return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+    }
+  };
+
+  const handlePhoneChange = (e) => {
+    const formatted = formatPhone(e.target.value);
+    setValue('phone', formatted);
+  };
 
   useEffect(() => {
     loadDog();
@@ -39,16 +65,26 @@ const DogDetail = () => {
   const onSubmit = async (data) => {
     try {
       setSubmitting(true);
-      await adoptionsAPI.create({
+      
+      // Remove formatting from phone number before sending
+      const cleanPhone = data.phone.replace(/\D/g, '');
+      
+      const payload = {
         ...data,
+        phone: cleanPhone,
         dogId: parseInt(id)
-      });
+      };
+      
+      console.log('Sending adoption data:', payload);
+      
+      await adoptionsAPI.create(payload);
       setSubmitted(true);
-      setShowForm(false);
+      setShowModal(false);
       reset();
     } catch (error) {
       console.error('Erro ao enviar solicitação:', error);
-      alert('Erro ao enviar solicitação. Tente novamente.');
+      console.error('Error response:', error.response?.data);
+      alert(`Erro ao enviar solicitação: ${error.response?.data?.error || error.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -222,12 +258,12 @@ const DogDetail = () => {
               {!submitted ? (
                 <>
                   <Button
-                    onClick={() => setShowForm(!showForm)}
+                    onClick={() => setShowModal(true)}
                     size="lg"
                     className="w-full btn-primary"
                   >
                     <Heart className="w-5 h-5 mr-2" />
-                    {showForm ? 'Cancelar Solicitação' : 'Quero Adotar'}
+                    Quero Adotar
                   </Button>
                   
                   <div className="grid grid-cols-2 gap-4">
@@ -263,16 +299,16 @@ const DogDetail = () => {
           </div>
         </div>
 
-        {/* Formulário de Adoção */}
-        {showForm && !submitted && (
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Formulário de Adoção - {dog.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* Modal de Formulário de Adoção */}
+        <Dialog open={showModal} onOpenChange={setShowModal}>
+          <DialogContent className="!max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle>Formulário de Adoção - {dog.name}</DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto pr-2">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="name">Nome Completo *</Label>
                     <Input
                       id="name"
@@ -280,11 +316,11 @@ const DogDetail = () => {
                       className={errors.name ? 'border-red-500' : ''}
                     />
                     {errors.name && (
-                      <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+                      <p className="text-red-500 text-sm">{errors.name.message}</p>
                     )}
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="email">E-mail *</Label>
                     <Input
                       id="email"
@@ -299,24 +335,27 @@ const DogDetail = () => {
                       className={errors.email ? 'border-red-500' : ''}
                     />
                     {errors.email && (
-                      <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="phone">Telefone *</Label>
-                    <Input
-                      id="phone"
-                      {...register('phone', { required: 'Telefone é obrigatório' })}
-                      className={errors.phone ? 'border-red-500' : ''}
-                    />
-                    {errors.phone && (
-                      <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+                      <p className="text-red-500 text-sm">{errors.email.message}</p>
                     )}
                   </div>
                 </div>
 
-                <div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Telefone *</Label>
+                  <Input
+                    id="phone"
+                    {...register('phone', { required: 'Telefone é obrigatório' })}
+                    onChange={handlePhoneChange}
+                    placeholder="(35) 99999-0553"
+                    maxLength={15}
+                    className={errors.phone ? 'border-red-500' : ''}
+                  />
+                  {errors.phone && (
+                    <p className="text-red-500 text-sm">{errors.phone.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="address">Endereço Completo *</Label>
                   <Textarea
                     id="address"
@@ -325,11 +364,11 @@ const DogDetail = () => {
                     rows={3}
                   />
                   {errors.address && (
-                    <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
+                    <p className="text-red-500 text-sm">{errors.address.message}</p>
                   )}
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="experience">Experiência com Animais *</Label>
                   <Textarea
                     id="experience"
@@ -339,11 +378,11 @@ const DogDetail = () => {
                     rows={4}
                   />
                   {errors.experience && (
-                    <p className="text-red-500 text-sm mt-1">{errors.experience.message}</p>
+                    <p className="text-red-500 text-sm">{errors.experience.message}</p>
                   )}
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="reason">Por que deseja adotar {dog.name}? *</Label>
                   <Textarea
                     id="reason"
@@ -353,30 +392,39 @@ const DogDetail = () => {
                     rows={4}
                   />
                   {errors.reason && (
-                    <p className="text-red-500 text-sm mt-1">{errors.reason.message}</p>
+                    <p className="text-red-500 text-sm">{errors.reason.message}</p>
                   )}
                 </div>
-
-                <div className="flex gap-4">
-                  <Button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex-1"
-                  >
-                    {submitting ? 'Enviando...' : 'Enviar Solicitação'}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowForm(false)}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
               </form>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+            <DialogFooter className="flex-shrink-0">
+              <div className="flex gap-2 w-full justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowModal(false)}
+                  className="min-w-[100px]"
+                  disabled={submitting}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleSubmit(onSubmit)}
+                  className="min-w-[100px]"
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    'Enviar Solicitação'
+                  )}
+                </Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

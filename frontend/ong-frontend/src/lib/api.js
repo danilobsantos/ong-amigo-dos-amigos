@@ -52,7 +52,11 @@ export const dogsAPI = {
 export const adoptionsAPI = {
   create: (data) => api.post('/adoptions', data),
   getAll: (params = {}) => api.get('/adoptions', { params }),
-  updateStatus: (id, status) => api.patch(`/adoptions/${id}/status`, { status }),
+  updateStatus: (id, status, reason = null) => {
+    const payload = { status };
+    if (reason) payload.reason = reason;
+    return api.patch(`/adoptions/${id}/status`, payload);
+  },
 };
 
 // Blog
