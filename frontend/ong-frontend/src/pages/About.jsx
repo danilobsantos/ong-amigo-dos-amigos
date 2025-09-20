@@ -1,6 +1,9 @@
 import React from 'react';
-import { Heart, Users, Award, Target, Eye, Handshake } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Heart, Users, Award, Target, Eye, Handshake, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import OptimizedImage, { ImageGallery } from '@/components/OptimizedImage';
 
 const About = () => {
   const team = [
@@ -56,8 +59,17 @@ const About = () => {
   const achievements = [
     { number: '500+', label: 'Cães Resgatados' },
     { number: '350+', label: 'Adoções Realizadas' },
-    { number: '50+', label: 'Voluntários Ativos' },
-    { number: '5', label: 'Anos de Atividade' }
+    { number: '10+', label: 'Voluntários Ativos' },
+    { number: '15', label: 'Anos de Atividade' }
+  ];
+
+  const galleryImages = [
+    '/images/imagem1.jpg',
+    '/images/imagem2.jpg',
+    '/images/imagem3.jpg',
+    '/images/imagem4.jpg',
+    '/images/imagem5.jpg',
+    '/images/imagem6.jpg'
   ];
 
   return (
@@ -72,42 +84,40 @@ const About = () => {
         </div>
       </section>
 
-      {/* Nossa História */}
+      {/* Nossa História (texto fornecido pelo cliente) */}
       <section className="section-padding">
         <div className="container-max">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold mb-6">Nossa História</h2>
-              <div className="space-y-4 text-gray-700">
-                <p>
-                  A ONG Amigo dos Amigos nasceu em 2019 do sonho de Maria Silva, uma veterinária 
-                  que não conseguia ficar indiferente ao sofrimento dos animais abandonados nas 
-                  ruas de São Paulo.
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-6">NOSSA HISTÓRIA</h2>
+              <div className="space-y-4 text-gray-700 leading-relaxed mx-auto max-w-2xl">
+                <p className="text-center">
+                  Fundada em 16 de setembro de 2013 e formalizada em 9 de maio de 2014, a ONG Amigo dos Amigos começou como um grupo de voluntários apaixonados pela causa animal. Desde então, contamos com diretores e colaboradores que doam tempo e esforço sem remuneração. A partir de outubro de 2017, recebemos apoio do Poder Público, fortalecendo nossa missão.
                 </p>
-                <p>
-                  Começamos com um pequeno grupo de voluntários e um abrigo improvisado no quintal 
-                  de casa. Hoje, somos uma organização reconhecida que já resgatou mais de 500 cães 
-                  e realizou centenas de adoções responsáveis.
+
+                <p className="text-center">
+                  Nosso foco é a castração, a melhor solução para saúde e controle populacional. Não resgatamos animais saudáveis, mas oferecemos espaço transitório para os que precisam de cuidados. Nosso Centro de Proteção Animal funciona como Lar Temporário, priorizando adoção responsável.
                 </p>
-                <p>
-                  Nossa missão cresceu, mas nossos valores permaneceram os mesmos: amor incondicional 
-                  pelos animais, transparência em nossas ações e compromisso com a adoção responsável.
-                </p>
-                <p>
-                  Cada cão que passa por nós recebe não apenas cuidados médicos, mas também muito 
-                  carinho e atenção, preparando-os para encontrar uma família que os ame para sempre.
-                </p>
+
               </div>
             </div>
-            <div className="relative">
-              <img
-                src="/api/placeholder/600/400"
-                alt="História da ONG"
-                className="rounded-lg shadow-lg"
-              />
-              <div className="absolute -bottom-6 -right-6 bg-accent text-white p-6 rounded-lg shadow-lg">
-                <div className="text-3xl font-bold">5+</div>
-                <div className="text-sm">Anos salvando vidas</div>
+
+            {/* Mosaico de fotos (thumbnails em linha) */}
+            <div>
+              <h3 className="text-2xl text-center font-semibold mb-4">Fotos</h3>
+              <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                {galleryImages.map((src, idx) => (
+                  <div key={idx} className="overflow-hidden rounded-lg">
+                    <OptimizedImage
+                      src={src}
+                      alt={`Foto ${idx + 1}`}
+                      className="w-full h-28 md:h-32 object-cover rounded-lg"
+                      width={400}
+                      height={240}
+                      priority={idx === 0}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -127,7 +137,7 @@ const About = () => {
                 <Target className="w-12 h-12 text-primary mx-auto mb-4" />
                 <h3 className="text-xl font-semibold mb-4">Missão</h3>
                 <p className="text-gray-600">
-                  Resgatar, reabilitar e encontrar lares amorosos para cães em situação de 
+                  Respeito à vida animal. Resgatar, reabilitar e encontrar lares amorosos para cães em situação de 
                   vulnerabilidade, promovendo a adoção responsável e o bem-estar animal.
                 </p>
               </CardContent>
@@ -139,7 +149,7 @@ const About = () => {
                 <h3 className="text-xl font-semibold mb-4">Visão</h3>
                 <p className="text-gray-600">
                   Ser referência em proteção animal, criando uma sociedade onde todos os 
-                  cães tenham direito a uma vida digna e cheia de amor.
+                  pets tenham direito a uma vida digna e cheia de amor.
                 </p>
               </CardContent>
             </Card>

@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { adoptionsAPI } from '../../lib/api';
 import AdminLayout from '../../components/AdminLayout';
 
-const AdminAdoptions = () => {
+
+const AdminAdoptions = ({ onStatusChange }) => {
   const [adoptions, setAdoptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,8 +28,16 @@ const AdminAdoptions = () => {
 
   const handleStatusChange = async (id, status) => {
     try {
-      await adoptionsAPI.updateStatus(id, status);
-      loadAdoptions();
+      const response = await adoptionsAPI.updateStatus(id, status);
+      const updatedAdoption = response.data.adoption;
+      setAdoptions((prevAdoptions) =>
+        prevAdoptions.map((adoption) =>
+          adoption.id === id ? updatedAdoption : adoption
+        )
+      );
+      if (typeof onStatusChange === 'function') {
+        onStatusChange();
+      }
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
     }

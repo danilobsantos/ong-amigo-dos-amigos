@@ -23,11 +23,16 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Servir arquivos estáticos (uploads)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Allow cross-origin resource policy for these assets so frontend at a different origin can embed them
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
 // Rotas da API
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/dogs', require('./routes/dogs'));
+app.use('/api/uploads', require('./routes/uploads'));
 app.use('/api/adoptions', require('./routes/adoptions'));
 app.use('/api/blog', require('./routes/blog'));
 app.use('/api/volunteers', require('./routes/volunteers'));
@@ -38,6 +43,7 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/whatsapp', require('./routes/whatsapp'));
 app.use('/api/seo', require('./routes/seo'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/users', require('./routes/users'));
 
 // Rota de health check
 app.get('/api/health', (req, res) => {

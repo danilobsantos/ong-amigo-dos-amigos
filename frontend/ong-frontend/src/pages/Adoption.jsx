@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, Heart, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,8 @@ const Adoption = () => {
   const [dogs, setDogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    size: '',
-    gender: '',
+    size: 'all',
+    gender: 'all',
     search: ''
   });
   const [pagination, setPagination] = useState({
@@ -23,11 +23,7 @@ const Adoption = () => {
     pages: 0
   });
 
-  useEffect(() => {
-    loadDogs();
-  }, [filters, pagination.page]);
-
-  const loadDogs = async () => {
+  const loadDogs = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -36,9 +32,9 @@ const Adoption = () => {
         ...filters
       };
       
-      // Remove filtros vazios
+      // Remove filtros vazios e sentinela 'all'
       Object.keys(params).forEach(key => {
-        if (params[key] === '') delete params[key];
+        if (params[key] === '' || params[key] === 'all') delete params[key];
       });
 
       const response = await dogsAPI.getAll(params);
@@ -52,7 +48,11 @@ const Adoption = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, pagination.page, pagination.limit]);
+
+  useEffect(() => {
+    loadDogs();
+  }, [loadDogs]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -92,42 +92,48 @@ const Adoption = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
+              <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   placeholder="Buscar por nome..."
                   value={filters.search}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className="pl-10"
+                  className="pl-10 w-full"
                 />
               </div>
               
-              <Select value={filters.size} onValueChange={(value) => handleFilterChange('size', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Porte" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos os portes</SelectItem>
-                  <SelectItem value="pequeno">Pequeno</SelectItem>
-                  <SelectItem value="médio">Médio</SelectItem>
-                  <SelectItem value="grande">Grande</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="w-full">
+                <Select value={filters.size} onValueChange={(value) => handleFilterChange('size', value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Porte" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os portes</SelectItem>
+                    <SelectItem value="pequeno">Pequeno</SelectItem>
+                    <SelectItem value="médio">Médio</SelectItem>
+                    <SelectItem value="grande">Grande</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               
-              <Select value={filters.gender} onValueChange={(value) => handleFilterChange('gender', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sexo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  <SelectItem value="macho">Macho</SelectItem>
-                  <SelectItem value="fêmea">Fêmea</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="w-full">
+                <Select value={filters.gender} onValueChange={(value) => handleFilterChange('gender', value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sexo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="macho">Macho</SelectItem>
+                    <SelectItem value="fêmea">Fêmea</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               
-              <Button variant="outline" onClick={clearFilters}>
-                Limpar Filtros
-              </Button>
+              <div className="w-full">
+                <Button variant="outline" onClick={clearFilters} className="w-full h-10">
+                  Limpar Filtros
+                </Button>
+              </div>
             </div>
           </div>
 

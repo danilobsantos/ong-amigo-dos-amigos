@@ -1,5 +1,7 @@
 const express = require('express');
 const { prisma } = require('../config/database');
+const fs = require('fs');
+const path = require('path');
 const { dogSchema } = require('../utils/validation');
 const { authenticateToken, requireAdmin } = require('../middlewares/auth');
 
@@ -8,12 +10,16 @@ const router = express.Router();
 // Listar cães disponíveis para adoção (público)
 router.get('/', async (req, res) => {
   try {
-    const { size, gender, page = 1, limit = 12 } = req.query;
+    const { size, gender, search, page = 1, limit = 12 } = req.query;
     
-    const where = { available: true };
-    
-    if (size) where.size = size;
-    if (gender) where.gender = gender;
+  const where = {};
+
+  // If query param all=true is NOT provided, default to only available dogs (public behavior)
+  if (req.query.all !== 'true') where.available = true;
+
+  if (size) where.size = size;
+  if (gender) where.gender = gender;
+  if (search) where.name = { contains: search };
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -33,16 +39,27 @@ router.get('/', async (req, res) => {
           temperament: true,
           images: true,
           vaccinated: true,
-          neutered: true
+      neutered: true,
+      description: true,
+      available: true
         }
       }),
       prisma.dog.count({ where })
     ]);
 
-    // Parse das imagens JSON
+    // Normalize images: if images is an array of DogImage objects, map to url strings;
+    // otherwise (legacy), try to parse JSON stored as string.
     const dogsWithImages = dogs.map(dog => ({
       ...dog,
-      images: JSON.parse(dog.images || '[]')
+      images: Array.isArray(dog.images)
+        ? dog.images.map(img => (img && img.url ? img.url : String(img)))
+        : (() => {
+            try {
+              return JSON.parse(dog.images || '[]');
+            } catch (e) {
+              return [];
+            }
+          })()
     }));
 
     res.json({
@@ -66,17 +83,26 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
 
     const dog = await prisma.dog.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: parseInt(id) },
+      include: { images: true }
     });
 
     if (!dog) {
       return res.status(404).json({ error: 'Cão não encontrado' });
     }
 
-    // Parse das imagens JSON
+    // Normalize images for a single dog
     const dogWithImages = {
       ...dog,
-      images: JSON.parse(dog.images || '[]')
+      images: Array.isArray(dog.images)
+        ? dog.images.map(img => (img && img.url ? img.url : String(img)))
+        : (() => {
+            try {
+              return JSON.parse(dog.images || '[]');
+            } catch (e) {
+              return [];
+            }
+          })()
     };
 
     res.json(dogWithImages);
@@ -94,20 +120,26 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const dogData = {
-      ...value,
-      images: JSON.stringify(value.images || [])
-    };
+    // Prepare scalar fields
+    const { images, ...scalars } = value;
 
+    // Create dog with nested images
     const dog = await prisma.dog.create({
-      data: dogData
+      data: {
+        ...scalars,
+        images: {
+          create: (images || []).map(url => ({ url }))
+        }
+      },
+      include: { images: true }
     });
 
+    // Return normalized response (images as array of urls)
     res.status(201).json({
       message: 'Cão cadastrado com sucesso',
       dog: {
         ...dog,
-        images: JSON.parse(dog.images)
+        images: Array.isArray(dog.images) ? dog.images.map(i => i.url) : []
       }
     });
   } catch (error) {
@@ -120,27 +152,70 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
 router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
+    const dogId = parseInt(id);
     const { error, value } = dogSchema.validate(req.body);
-    
+
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const dogData = {
-      ...value,
-      images: JSON.stringify(value.images || [])
-    };
 
-    const dog = await prisma.dog.update({
-      where: { id: parseInt(id) },
-      data: dogData
+    const { images, ...scalars } = value;
+
+    // fetch current images to compute which files were removed
+    const existingImages = await prisma.dogImage.findMany({ where: { dogId }, select: { url: true } });
+    const existingUrls = existingImages.map(i => i.url);
+
+    // Use a transaction: update scalar fields, replace images
+    await prisma.$transaction(async (tx) => {
+      await tx.dog.update({
+        where: { id: dogId },
+        data: scalars
+      });
+
+      // remove existing images for the dog records
+      await tx.dogImage.deleteMany({ where: { dogId } });
+
+      // create new images if provided
+      if (images && images.length > 0) {
+        const createData = images.map(url => ({ url, dogId }));
+        await tx.dogImage.createMany({ data: createData });
+      }
     });
+
+    // fetch updated dog with images
+    const dog = await prisma.dog.findUnique({ where: { id: dogId }, include: { images: true } });
+
+    // After DB transaction, remove files that were present before but not referenced anymore
+    try {
+      const removed = existingUrls.filter(u => !(images || []).includes(u));
+      const UPLOAD_PATH = path.join(__dirname, '..', 'uploads');
+      const FRONTEND_DOGS_PATH = path.join(__dirname, '..', '..', 'frontend', 'ong-frontend', 'public', 'images', 'dogs');
+      removed.forEach((url) => {
+        try {
+          // extract filename from url
+          const filename = url.split('/').pop();
+          const backendFile = path.join(UPLOAD_PATH, filename);
+          const frontendFile = path.join(FRONTEND_DOGS_PATH, filename);
+          if (fs.existsSync(backendFile)) {
+            fs.unlinkSync(backendFile);
+          }
+          if (fs.existsSync(frontendFile)) {
+            fs.unlinkSync(frontendFile);
+          }
+        } catch (e) {
+          console.warn('Erro ao remover arquivo de imagem:', e.message);
+        }
+      });
+    } catch (e) {
+      console.warn('Erro ao processar remoção de arquivos de imagem:', e.message);
+    }
 
     res.json({
       message: 'Cão atualizado com sucesso',
       dog: {
         ...dog,
-        images: JSON.parse(dog.images)
+        images: Array.isArray(dog.images) ? dog.images.map(i => i.url) : []
       }
     });
   } catch (error) {
@@ -156,9 +231,27 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
 router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
+    const dogId = parseInt(id);
 
-    await prisma.dog.delete({
-      where: { id: parseInt(id) }
+    // fetch images to delete files
+    const images = await prisma.dogImage.findMany({ where: { dogId }, select: { url: true } });
+
+    // delete DB dog (this will cascade to dogImage because of onDelete: Cascade)
+    await prisma.dog.delete({ where: { id: dogId } });
+
+    // delete files from disk
+    const UPLOAD_PATH = path.join(__dirname, '..', 'uploads');
+    const FRONTEND_DOGS_PATH = path.join(__dirname, '..', '..', 'frontend', 'ong-frontend', 'public', 'images', 'dogs');
+    images.forEach(({ url }) => {
+      try {
+        const filename = url.split('/').pop();
+        const backendFile = path.join(UPLOAD_PATH, filename);
+        const frontendFile = path.join(FRONTEND_DOGS_PATH, filename);
+        if (fs.existsSync(backendFile)) fs.unlinkSync(backendFile);
+        if (fs.existsSync(frontendFile)) fs.unlinkSync(frontendFile);
+      } catch (e) {
+        console.warn('Erro ao remover arquivo de imagem durante delete dog:', e.message);
+      }
     });
 
     res.json({ message: 'Cão removido com sucesso' });

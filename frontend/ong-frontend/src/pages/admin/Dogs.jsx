@@ -1,13 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { dogsAPI } from '../../lib/api';
+import { dogsAPI, uploadsAPI } from '../../lib/api';
 import AdminLayout from '../../components/AdminLayout';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { useForm, Controller } from 'react-hook-form';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const AdminDogs = () => {
+  // derive backend origin from VITE_API_URL (which includes /api) or fallback
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const BACKEND_ORIGIN = API_BASE.replace(/\/api\/?$/,'');
+
+  const normalizeImageUrl = (url) => {
+    if (!url) return '/api/placeholder/64/64';
+    if (/^https?:\/\//.test(url)) return url;
+    // If the path is under /uploads, it's served by backend
+    if (url.startsWith('/uploads/')) return `${BACKEND_ORIGIN}${url}`;
+    // If the path is under /images, assume it's a frontend static asset
+    if (url.startsWith('/images/')) return `${window.location.origin}${url}`;
+    // otherwise default to backend origin
+    if (url.startsWith('/')) return `${BACKEND_ORIGIN}${url}`;
+    return url;
+  };
   const [dogs, setDogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,18 +44,29 @@ const AdminDogs = () => {
     total: 0,
     pages: 0
   });
+  const [showCreate, setShowCreate] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [showView, setShowView] = useState(false);
+  const [selectedDog, setSelectedDog] = useState(null);
 
-  useEffect(() => {
-    loadDogs();
-  }, [pagination.page, searchTerm]);
+  const createForm = useForm();
+  const editForm = useForm();
+  const createFileRef = useRef(null);
+  const editFileRef = useRef(null);
+  const [createFilesList, setCreateFilesList] = useState([]);
+  const [editFilesList, setEditFilesList] = useState([]);
+  const [editExistingImages, setEditExistingImages] = useState([]);
+  const [createSelectedFiles, setCreateSelectedFiles] = useState([]); // { file, name, url }
+  const [editSelectedFiles, setEditSelectedFiles] = useState([]); // { file, name, url }
 
-  const loadDogs = async () => {
+  const loadDogs = React.useCallback(async () => {
     try {
       setLoading(true);
       const params = {
         page: pagination.page,
         limit: pagination.limit,
-        search: searchTerm || undefined
+        search: searchTerm || undefined,
+        all: true
       };
 
       const response = await dogsAPI.getAll(params);
@@ -42,7 +80,16 @@ const AdminDogs = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.page, pagination.limit, searchTerm]);
+
+
+  React.useEffect(() => {
+    loadDogs();
+    // Listener para evento global de reload
+    const handler = () => loadDogs();
+    window.addEventListener('reload-dogs', handler);
+    return () => window.removeEventListener('reload-dogs', handler);
+  }, [loadDogs]);
 
   const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este cão?')) {
@@ -54,6 +101,114 @@ const AdminDogs = () => {
         alert('Erro ao excluir cão');
       }
     }
+  };
+
+  const openCreate = () => {
+    // clean up any previous previews
+    createSelectedFiles.forEach(f => f.url && URL.revokeObjectURL(f.url));
+    setCreateSelectedFiles([]);
+    setCreateFilesList([]);
+  createForm.reset({ name: '', age: '', size: 'médio', gender: 'macho', breed: '', description: '', temperament: '', vaccinated: false, neutered: false, available: 'true', imagesText: '' });
+    setShowCreate(true);
+  };
+
+  const onCreate = async (data) => {
+    try {
+      let images = [];
+      // If there are selected files, upload them
+      if (createSelectedFiles && createSelectedFiles.length > 0) {
+        const fd = new FormData();
+        createSelectedFiles.forEach(f => fd.append('images', f.file));
+        const uploadRes = await uploadsAPI.uploadImages(fd);
+        images = uploadRes.data.urls || [];
+      }
+
+      const payload = {
+        name: data.name,
+        age: data.age,
+        size: data.size,
+        gender: data.gender,
+        breed: data.breed,
+        description: data.description,
+        temperament: data.temperament,
+        vaccinated: !!data.vaccinated,
+        neutered: !!data.neutered,
+        available: (typeof data.available === 'string') ? (data.available === 'true') : !!data.available,
+        images
+      };
+      await dogsAPI.create(payload);
+      // cleanup previews
+      createSelectedFiles.forEach(f => f.url && URL.revokeObjectURL(f.url));
+      setCreateSelectedFiles([]);
+      setCreateFilesList([]);
+      setShowCreate(false);
+      await loadDogs();
+    } catch (err) {
+      console.error('Erro ao criar cão:', err);
+      alert(err.response?.data?.error || 'Erro ao criar cão');
+    }
+  };
+
+  const openEdit = (dog) => {
+    setSelectedDog(dog);
+    editForm.reset({
+      name: dog.name || '',
+      age: dog.age || '',
+      size: dog.size || 'médio',
+      gender: dog.gender || 'macho',
+      breed: dog.breed || '',
+      description: dog.description || '',
+      temperament: dog.temperament || '',
+      vaccinated: !!dog.vaccinated,
+      neutered: !!dog.neutered,
+      available: (dog.available === true || dog.available === 'true') ? 'true' : 'false',
+      imagesText: (dog.images || []).join('\n')
+    });
+    setEditExistingImages(dog.images || []);
+    setShowEdit(true);
+  };
+
+  const onUpdate = async (data) => {
+    try {
+      // Start with the existing images that the admin did not remove
+      let images = Array.isArray(editExistingImages) ? [...editExistingImages] : [];
+
+      // If new files were selected, upload them and append returned URLs
+      if (data.images && data.images.length > 0) {
+        const fd = new FormData();
+        for (let i = 0; i < data.images.length; i++) fd.append('images', data.images[i]);
+        const uploadRes = await uploadsAPI.uploadImages(fd);
+        const uploaded = uploadRes.data.urls || [];
+        images = images.concat(uploaded);
+      }
+
+      const payload = {
+        name: data.name,
+        age: data.age,
+        size: data.size,
+        gender: data.gender,
+        breed: data.breed,
+        description: data.description,
+        temperament: data.temperament,
+        vaccinated: !!data.vaccinated,
+        neutered: !!data.neutered,
+  available: (typeof data.available === 'string') ? (data.available === 'true') : !!data.available,
+        images
+      };
+      await dogsAPI.update(selectedDog.id, payload);
+      setShowEdit(false);
+      setSelectedDog(null);
+      setEditExistingImages([]);
+      await loadDogs();
+    } catch (err) {
+      console.error('Erro ao atualizar cão:', err);
+      alert(err.response?.data?.error || 'Erro ao atualizar cão');
+    }
+  };
+
+  const openView = (dog) => {
+    setSelectedDog(dog);
+    setShowView(true);
   };
 
   const handlePageChange = (newPage) => {
@@ -69,7 +224,7 @@ const AdminDogs = () => {
             <h1 className="text-3xl font-bold text-gray-900">Gerenciar Cães</h1>
             <p className="text-gray-600">Cadastre e gerencie os cães disponíveis para adoção</p>
           </div>
-          <Button className="btn-primary">
+          <Button className="btn-primary" onClick={openCreate}>
             <Plus className="w-4 h-4 mr-2" />
             Novo Cão
           </Button>
@@ -122,7 +277,7 @@ const AdminDogs = () => {
                 {dogs.map((dog) => (
                   <div key={dog.id} className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-gray-50">
                     <img
-                      src={dog.images?.[0] || '/api/placeholder/64/64'}
+                      src={normalizeImageUrl(dog.images?.[0])}
                       alt={dog.name}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
@@ -130,7 +285,7 @@ const AdminDogs = () => {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold">{dog.name}</h3>
                         <Badge variant={dog.available ? 'default' : 'secondary'}>
-                          {dog.available ? 'Disponível' : 'Indisponível'}
+                          {dog.available ? 'Para adoção' : 'Adotado'}
                         </Badge>
                         <Badge variant="outline">{dog.size}</Badge>
                         <Badge variant="outline">{dog.gender}</Badge>
@@ -140,10 +295,10 @@ const AdminDogs = () => {
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => openView(dog)}>
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => openEdit(dog)}>
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button 
@@ -198,6 +353,361 @@ const AdminDogs = () => {
             )}
           </CardContent>
         </Card>
+
+            {/* Create Dog Dialog */}
+            <Dialog open={showCreate} onOpenChange={setShowCreate}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Cadastrar Cão</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={createForm.handleSubmit(onCreate)} className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="flex flex-col gap-2">
+                      <Label>Nome</Label>
+                      <Input {...createForm.register('name', { required: true })} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Idade</Label>
+                      <Input {...createForm.register('age', { required: true })} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Porte</Label>
+                      <select {...createForm.register('size', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                        <option value="pequeno">Pequeno</option>
+                        <option value="médio">Médio</option>
+                        <option value="grande">Grande</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Gênero</Label>
+                      <select {...createForm.register('gender', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                        <option value="macho">Macho</option>
+                        <option value="fêmea">Fêmea</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Raça</Label>
+                      <Input {...createForm.register('breed')} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Descrição</Label>
+                      <Textarea {...createForm.register('description', { required: true })} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Temperamento</Label>
+                      <Textarea {...createForm.register('temperament', { required: true })} />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Controller
+                        control={createForm.control}
+                        name="vaccinated"
+                        defaultValue={false}
+                        render={({ field }) => (
+                          <>
+                            <Checkbox checked={!!field.value} onCheckedChange={(val) => field.onChange(!!val)} />
+                            <Label>Vacinado</Label>
+                          </>
+                        )}
+                      />
+                      <Controller
+                        control={createForm.control}
+                        name="neutered"
+                        defaultValue={false}
+                        render={({ field }) => (
+                          <>
+                            <Checkbox checked={!!field.value} onCheckedChange={(val) => field.onChange(!!val)} />
+                            <Label>Castrado</Label>
+                          </>
+                        )}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Disponibilidade</Label>
+                      <select {...createForm.register('available')} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                        <option value={'true'}>Para adoção</option>
+                        <option value={'false'}>Adotado</option>
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <Label>Imagens</Label>
+                      <input ref={createFileRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        createForm.setValue('images', e.target.files);
+                        setCreateFilesList(files.map(f => f.name));
+                        // revoke previous previews
+                        createSelectedFiles.forEach(f => f.url && URL.revokeObjectURL(f.url));
+                        const mapped = files.map(f => ({ file: f, name: f.name, url: URL.createObjectURL(f) }));
+                        setCreateSelectedFiles(mapped);
+                      }} />
+                      <div className="flex items-center gap-2">
+                        <Button type="button" onClick={() => createFileRef.current?.click()}>Enviar fotos</Button>
+                        <div className="text-sm text-gray-600">{createFilesList.length > 0 ? `${createFilesList.length} arquivo(s) selecionado(s)` : 'Nenhum arquivo escolhido'}</div>
+                      </div>
+                      {createFilesList.length > 0 && (
+                        <ul className="mt-2 text-sm list-disc list-inside text-gray-700">
+                          {createFilesList.map((n, i) => <li key={i}>{n}</li>)}
+                        </ul>
+                      )}
+
+                      {createSelectedFiles && createSelectedFiles.length > 0 && (
+                        <div className="mt-3 grid grid-cols-4 gap-3">
+                          {createSelectedFiles.map((f, idx) => (
+                            <div key={idx} className="relative">
+                              <img src={f.url} alt={f.name} className="w-24 h-24 object-cover rounded-md border" />
+                              <button type="button" onClick={() => {
+                                // remove and revoke
+                                setCreateSelectedFiles(prev => {
+                                  prev[idx] && prev[idx].url && URL.revokeObjectURL(prev[idx].url);
+                                  return prev.filter((_, i) => i !== idx);
+                                });
+                                const remaining = createSelectedFiles.filter((_, i) => i !== idx).map(p => p.file);
+                                if (createFileRef.current) createFileRef.current.value = null;
+                                if (remaining.length === 0) {
+                                  createForm.setValue('images', undefined);
+                                  setCreateFilesList([]);
+                                } else {
+                                  setCreateFilesList(remaining.map(r => r.name));
+                                  createForm.setValue('images', remaining);
+                                }
+                              }} className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow text-red-600 hover:text-red-700">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <div className="flex gap-2 w-full justify-end">
+                      <Button variant="ghost" onClick={() => setShowCreate(false)}>Cancelar</Button>
+                      <Button type="submit">Criar</Button>
+                    </div>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+
+            {/* Edit Dog Dialog */}
+            <Dialog open={showEdit} onOpenChange={setShowEdit}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Editar Cão</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={editForm.handleSubmit(onUpdate)} className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="flex flex-col gap-2">
+                      <Label>Nome</Label>
+                      <Input {...editForm.register('name', { required: true })} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Idade</Label>
+                      <Input {...editForm.register('age', { required: true })} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Porte</Label>
+                      <select {...editForm.register('size', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                        <option value="pequeno">Pequeno</option>
+                        <option value="médio">Médio</option>
+                        <option value="grande">Grande</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Gênero</Label>
+                      <select {...editForm.register('gender', { required: true })} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                        <option value="macho">Macho</option>
+                        <option value="fêmea">Fêmea</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Raça</Label>
+                      <Input {...editForm.register('breed')} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Descrição</Label>
+                      <Textarea {...editForm.register('description', { required: true })} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Temperamento</Label>
+                      <Textarea {...editForm.register('temperament', { required: true })} />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Controller
+                        control={editForm.control}
+                        name="vaccinated"
+                        defaultValue={false}
+                        render={({ field }) => (
+                          <>
+                            <Checkbox checked={!!field.value} onCheckedChange={(val) => field.onChange(!!val)} />
+                            <Label>Vacinado</Label>
+                          </>
+                        )}
+                      />
+                      <Controller
+                        control={editForm.control}
+                        name="neutered"
+                        defaultValue={false}
+                        render={({ field }) => (
+                          <>
+                            <Checkbox checked={!!field.value} onCheckedChange={(val) => field.onChange(!!val)} />
+                            <Label>Castrado</Label>
+                          </>
+                        )}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Disponibilidade</Label>
+                      <select {...editForm.register('available')} className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                        <option value={'true'}>Para adoção</option>
+                        <option value={'false'}>Adotado</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label>Imagens</Label>
+                      <input ref={editFileRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        editForm.setValue('images', e.target.files);
+                        setEditFilesList(files.map(f => f.name));
+                        // create previews
+                        const mapped = files.map(f => ({ file: f, name: f.name, url: URL.createObjectURL(f) }));
+                        // revoke previous selected previews
+                        editSelectedFiles.forEach(f => f.url && URL.revokeObjectURL(f.url));
+                        setEditSelectedFiles(mapped);
+                      }} />
+                      <div className="flex items-center gap-2">
+                        <Button type="button" onClick={() => editFileRef.current?.click()}>Enviar fotos</Button>
+                        <div className="text-sm text-gray-600">{editFilesList.length > 0 ? `${editFilesList.length} arquivo(s) selecionado(s)` : 'Nenhum arquivo escolhido'}</div>
+                      </div>
+                      {editFilesList.length > 0 && (
+                        <ul className="mt-2 text-sm list-disc list-inside text-gray-700">
+                          {editFilesList.map((n, i) => <li key={i}>{n}</li>)}
+                        </ul>
+                      )}
+
+                      {/* Existing uploaded images (thumbnails) with delete buttons */}
+                      <div className="mt-3 grid grid-cols-4 gap-3">
+                        { /* existing uploaded images */ }
+                        {editExistingImages && editExistingImages.map((url, idx) => (
+                          <div key={`existing-${idx}`} className="relative">
+                              <img src={normalizeImageUrl(url)} alt={`img-${idx}`} className="w-24 h-24 object-cover rounded-md border" />
+                            <button type="button" onClick={() => {
+                              setEditExistingImages(prev => prev.filter((_, i) => i !== idx));
+                            }} className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow text-red-600 hover:text-red-700">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+
+                        { /* previews for newly selected files */ }
+                        {editSelectedFiles && editSelectedFiles.map((f, idx) => (
+                          <div key={`selected-${idx}`} className="relative">
+                            <img src={f.url} alt={f.name} className="w-24 h-24 object-cover rounded-md border" />
+                            <button type="button" onClick={() => {
+                              // remove preview and revoke object URL
+                              setEditSelectedFiles(prev => {
+                                prev[idx] && prev[idx].url && URL.revokeObjectURL(prev[idx].url);
+                                return prev.filter((_, i) => i !== idx);
+                              });
+                              // also remove from editForm 'images' FileList by clearing the input and re-setting from remaining
+                              const remaining = editSelectedFiles.filter((_, i) => i !== idx).map(p => p.file);
+                              if (editFileRef.current) {
+                                editFileRef.current.value = null;
+                              }
+                              if (remaining.length === 0) {
+                                editForm.setValue('images', undefined);
+                                setEditFilesList([]);
+                              } else {
+                                // can't programmatically set FileList; keep the selectedFiles state and names
+                                setEditFilesList(remaining.map(r => r.name));
+                                editForm.setValue('images', remaining);
+                              }
+                            }} className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow text-red-600 hover:text-red-700">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <div className="flex gap-2 w-full justify-end">
+                      <Button variant="ghost" onClick={() => setShowEdit(false)}>Cancelar</Button>
+                      <Button type="submit">Salvar</Button>
+                    </div>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+
+            {/* View Dog Dialog */}
+            <Dialog open={showView} onOpenChange={setShowView}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Visualizar Cão</DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="md:w-44 w-full flex-shrink-0">
+                    <img
+                      src={normalizeImageUrl(selectedDog?.images?.[0])}
+                      alt={selectedDog?.name}
+                      className="w-full h-44 md:h-44 object-cover rounded-md border"
+                    />
+                  </div>
+
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-2xl font-bold">{selectedDog?.name}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{selectedDog?.age} • {selectedDog?.breed || 'SRD'}</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <Badge variant={selectedDog?.available ? 'default' : 'secondary'}>{selectedDog?.available ? 'Para adoção' : 'Adotado'}</Badge>
+                          <Badge variant="outline">{selectedDog?.size}</Badge>
+                          <Badge variant="outline">{selectedDog?.gender}</Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <h4 className="font-semibold mb-1">Descrição</h4>
+                      <p className="text-sm text-gray-700">{selectedDog?.description || <span className="text-gray-500">Sem descrição informada</span>}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+                      <div>
+                        <p className="text-xs text-gray-500">Temperamento</p>
+                        <p className="mt-1 text-gray-800">{selectedDog?.temperament || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Raça</p>
+                        <p className="mt-1 text-gray-800">{selectedDog?.breed || 'SRD'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Vacinado</p>
+                        <p className="mt-1 text-gray-800">{selectedDog?.vaccinated ? 'Sim' : 'Não'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Castrado</p>
+                        <p className="mt-1 text-gray-800">{selectedDog?.neutered ? 'Sim' : 'Não'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Disponibilidade</p>
+                        <p className="mt-1 text-gray-800">{selectedDog?.available ? 'Para adoção' : 'Adotado'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Idade</p>
+                        <p className="mt-1 text-gray-800">{selectedDog?.age || '-'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                    <div className="flex gap-2 w-full justify-end">
+                    <Button className="btn-primary" onClick={() => setShowView(false)}>Fechar</Button>
+                  </div>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
       </div>
     </AdminLayout>
   );

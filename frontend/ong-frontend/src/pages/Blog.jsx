@@ -12,7 +12,7 @@ const Blog = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    category: '',
+    category: 'all',
     search: ''
   });
   const [pagination, setPagination] = useState({
@@ -23,7 +23,7 @@ const Blog = () => {
   });
 
   const categories = [
-    { value: '', label: 'Todas as Categorias' },
+    { value: 'all', label: 'Todas as Categorias' },
     { value: 'resgates', label: 'Resgates' },
     { value: 'eventos', label: 'Eventos' },
     { value: 'campanhas', label: 'Campanhas' },
@@ -37,11 +37,7 @@ const Blog = () => {
     transparencia: 'bg-purple-100 text-purple-800'
   };
 
-  useEffect(() => {
-    loadPosts();
-  }, [filters, pagination.page]);
-
-  const loadPosts = async () => {
+  const loadPosts = React.useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -50,9 +46,9 @@ const Blog = () => {
         ...filters
       };
       
-      // Remove filtros vazios
+      // Remover filtros vazios ou sentinel 'all'
       Object.keys(params).forEach(key => {
-        if (params[key] === '') delete params[key];
+        if (params[key] === '' || params[key] === 'all') delete params[key];
       });
 
       const response = await blogAPI.getPosts(params);
@@ -66,7 +62,11 @@ const Blog = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, pagination.page, pagination.limit]);
+
+  useEffect(() => {
+    loadPosts();
+  }, [loadPosts]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -74,7 +74,7 @@ const Blog = () => {
   };
 
   const clearFilters = () => {
-    setFilters({ category: '', search: '' });
+    setFilters({ category: 'all', search: '' });
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
@@ -124,12 +124,12 @@ const Blog = () => {
                 placeholder="Buscar posts..."
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="pl-10"
+                className="pl-10 w-full"
               />
             </div>
             
             <Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
@@ -141,7 +141,7 @@ const Blog = () => {
               </SelectContent>
             </Select>
             
-            <Button variant="outline" onClick={clearFilters}>
+            <Button variant="outline" onClick={clearFilters} className="w-full">
               Limpar Filtros
             </Button>
           </div>

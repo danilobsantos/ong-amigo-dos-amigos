@@ -20,6 +20,7 @@ import AdminAdoptions from './pages/admin/Adoptions';
 import AdminVolunteers from './pages/admin/Volunteers';
 import AdminDonations from './pages/admin/Donations';
 import AdminContacts from './pages/admin/Contacts';
+import AdminUsers from './pages/admin/Users';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -58,8 +59,13 @@ function App() {
                   <Route path="/" element={<AdminDashboard />} />
                   <Route path="/dashboard" element={<AdminDashboard />} />
                   <Route path="/caes" element={<AdminDogs />} />
+                  <Route path="/usuarios" element={<AdminUsers />} />
                   <Route path="/blog" element={<AdminBlog />} />
-                  <Route path="/adocoes" element={<AdminAdoptions />} />
+                  <Route path="/adocoes" element={<AdminAdoptions onStatusChange={() => {
+                    // Força reload da lista de cães se AdminDogs estiver montado
+                    const evt = new CustomEvent('reload-dogs');
+                    window.dispatchEvent(evt);
+                  }} />} />
                   <Route path="/voluntarios" element={<AdminVolunteers />} />
                   <Route path="/doacoes" element={<AdminDonations />} />
                   <Route path="/contatos" element={<AdminContacts />} />

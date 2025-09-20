@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, DollarSign, CreditCard, Smartphone, FileText, Shield } from 'lucide-react';
+import { Heart, DollarSign, CreditCard, Smartphone, FileText, Shield, Users, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ const Donations = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const { register, handleSubmit, reset } = useForm();
 
   const predefinedAmounts = [
     { value: '25', label: 'R$ 25', description: 'Ração para 1 semana' },
@@ -289,6 +289,30 @@ const Donations = () => {
                 </form>
               </CardContent>
             </Card>
+
+            {/* Outras Formas de Ajudar (moved here) */}
+            <div className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Outras Formas de Ajudar</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Heart className="w-4 h-4 mr-2" />
+                    Adotar um Cão
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Users className="w-4 h-4 mr-2" />
+                    Ser Voluntário
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Divulgar Nosso Trabalho
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
           </div>
 
           {/* Sidebar */}
@@ -365,26 +389,7 @@ const Donations = () => {
               </CardContent>
             </Card>
 
-            {/* Outras Formas de Ajudar */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Outras Formas de Ajudar</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Heart className="w-4 h-4 mr-2" />
-                  Adotar um Cão
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Users className="w-4 h-4 mr-2" />
-                  Ser Voluntário
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Divulgar Nosso Trabalho
-                </Button>
-              </CardContent>
-            </Card>
+            {/* moved: Outras Formas de Ajudar is displayed under the form */}
           </div>
         </div>
       </div>

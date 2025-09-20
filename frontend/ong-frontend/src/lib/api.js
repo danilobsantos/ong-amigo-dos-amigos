@@ -99,4 +99,22 @@ export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
 };
 
+// Users (admin)
+export const usersAPI = {
+  list: () => api.get('/users'),
+  create: (data) => api.post('/users', data),
+  update: (id, data) => api.put(`/users/${id}`, data),
+  resetPassword: (id, data) => api.post(`/users/${id}/reset-password`, data),
+  changePassword: (data) => api.post('/users/change-password', data)
+  ,
+  delete: (id) => api.delete(`/users/${id}`)
+};
+
+// Uploads
+export const uploadsAPI = {
+  uploadImages: (formData) => api.post('/uploads', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+};
+
 export default api;

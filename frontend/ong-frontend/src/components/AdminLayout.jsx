@@ -29,6 +29,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Adoções', href: '/admin/adocoes', icon: UserCheck },
     { name: 'Blog', href: '/admin/blog', icon: FileText },
     { name: 'Voluntários', href: '/admin/voluntarios', icon: Users },
+    { name: 'Usuários', href: '/admin/usuarios', icon: Users },
     { name: 'Doações', href: '/admin/doacoes', icon: DollarSign },
     { name: 'Contatos', href: '/admin/contatos', icon: MessageSquare },
   ];
@@ -53,7 +54,7 @@ const AdminLayout = ({ children }) => {
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:static lg:inset-0`}>
+      } lg:fixed lg:inset-y-0 lg:left-0`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b">
@@ -134,9 +135,9 @@ const AdminLayout = ({ children }) => {
       </div>
 
       {/* Main Content */}
-      <div className="lg:ml-64">
+      <div className="lg:ml-64 min-h-screen">
         {/* Top Bar */}
-        <header className="bg-white shadow-sm border-b h-16 flex items-center justify-between px-6">
+        <header className="bg-white shadow-sm border-b h-16 flex items-center justify-between px-6 sticky top-0 z-40">
           <button
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden p-2 rounded-md hover:bg-gray-100"
