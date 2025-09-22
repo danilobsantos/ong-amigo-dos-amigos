@@ -5,10 +5,10 @@ Este guia fornece instruções detalhadas para instalar e configurar o site da O
 ## 🎯 Visão Geral
 
 O projeto consiste em:
-- **Frontend React** - Interface do usuário moderna e responsiva
-- **Backend Node.js** - API REST com autenticação e integração de pagamentos
-- **Banco MySQL** - Armazenamento de dados
-- **Integrações** - Stripe, PIX, WhatsApp, Email
+- **Frontend React** - Interface do usuário moderna e responsiva com modais interativos
+- **Backend Node.js** - API REST com autenticação, sistema completo de doações e webhooks
+- **Banco MySQL** - Armazenamento de dados com gestão de doações e status
+- **Integrações** - Stripe Checkout, PIX instantâneo, WhatsApp, Email
 
 ## 🔧 Pré-requisitos
 
@@ -46,9 +46,11 @@ O projeto consiste em:
 
 ### Contas e Chaves Necessárias
 
-1. **Stripe** (pagamentos)
+1. **Stripe** (sistema completo de doações)
    - Criar conta em https://stripe.com
-   - Obter chaves de API (test e live)
+   - Obter chaves de API (secret key, publishable key, webhook secret)
+   - Configurar webhook para confirmação automática
+   - **IMPORTANTE**: Sistema funciona sem Stripe (fallback para PIX)
 
 2. **Google Maps** (localização)
    - Criar projeto no Google Cloud Console
@@ -106,9 +108,13 @@ DATABASE_URL="mysql://usuario:senha@localhost:3306/ong_amigo_dos_amigos"
 # JWT
 JWT_SECRET=sua_chave_secreta_muito_segura_aqui_123456789
 
-# Stripe
+# Stripe (Sistema Completo de Doações)
 STRIPE_SECRET_KEY=sk_test_sua_chave_stripe_aqui
 STRIPE_PUBLISHABLE_KEY=pk_test_sua_chave_stripe_aqui
+STRIPE_WEBHOOK_SECRET=whsec_sua_webhook_secret_aqui
+
+# PIX (Doações Instantâneas - OBRIGATÓRIO)
+PIX_KEY=sua_chave_pix_real_aqui
 
 # Email
 SMTP_USER=seu_email@gmail.com
@@ -187,32 +193,57 @@ pnpm run dev
 3. **Blog** - Criar e publicar artigos
 4. **Adoções** - Acompanhar solicitações
 5. **Voluntários** - Gerenciar cadastros
-6. **Doações** - Visualizar histórico
+6. **Doações** - Visualizar, filtrar e gerenciar todas as doações (PIX/Stripe)
 7. **Contatos** - Responder mensagens
 
 ## 🛠️ Configurações Avançadas
 
-### Configurar Pagamentos
+### Configurar Sistema de Doações
 
-#### Stripe (Cartão de Crédito)
+#### PIX (Obrigatório - Funciona Imediatamente)
 
-1. Criar conta no [Stripe](https://stripe.com)
-2. Obter chaves de API no Dashboard
-3. Configurar webhook endpoint: `https://seusite.com/api/payments/stripe/webhook`
-4. Adicionar chaves no `.env`:
+1. **Obter chave PIX**:
+   - Email, telefone, CPF/CNPJ ou chave aleatória
+   - Configurar na conta bancária da ONG
+
+2. **Configurar no projeto**:
    ```env
-   STRIPE_SECRET_KEY=sk_test_...
-   STRIPE_PUBLISHABLE_KEY=pk_test_...
-   STRIPE_WEBHOOK_SECRET=whsec_...
+   PIX_KEY=CHAVE_CNPJ
+   # ou
+   PIX_KEY=CHAVE_EMAIL
    ```
 
-#### PIX
+3. **Funcionalidades PIX**:
+   - ✅ Geração automática de QR Code
+   - ✅ Código Copia e Cola
+   - ✅ Modal interativo
+   - ✅ Confirmação manual
 
-1. Configurar chave PIX (email, telefone, CPF/CNPJ ou chave aleatória)
-2. Adicionar no `.env`:
+#### Stripe (Opcional - Cartão de Crédito)
+
+1. **Criar conta no [Stripe](https://stripe.com)**
+2. **Obter chaves de API no Dashboard**:
+   - Secret Key: `sk_test_...` (teste) ou `sk_live_...` (produção)
+   - Publishable Key: `pk_test_...` (teste) ou `pk_live_...` (produção)
+
+3. **Configurar webhook** (opcional para confirmação automática):
+   - Endpoint: `https://seusite.com/api/donations/webhook`
+   - Eventos: `checkout.session.completed`, `invoice.payment_succeeded`
+
+4. **Adicionar chaves no `.env`**:
    ```env
-   PIX_KEY=contato@amigodosamigos.org
+   STRIPE_SECRET_KEY=sk_test_sua_chave_real
+   STRIPE_PUBLISHABLE_KEY=pk_test_sua_chave_real
+   STRIPE_WEBHOOK_SECRET=whsec_sua_webhook_real
    ```
+
+5. **Funcionalidades Stripe**:
+   - ✅ Checkout Session completo
+   - ✅ Doações recorrentes (assinaturas)
+   - ✅ Webhook para confirmação automática
+   - ✅ Fallback automático para PIX se falhar
+
+**⚠️ IMPORTANTE**: Se as chaves Stripe não estiverem configuradas, o sistema automaticamente sugere PIX como alternativa.
 
 ### Configurar Email
 
@@ -426,6 +457,35 @@ imagemin backend/uploads/*.jpg --out-dir=backend/uploads/optimized
 - **Backend**: `npm install clinic` para profiling
 - **Banco**: `SHOW PROCESSLIST` no MySQL
 
+## 🆕 Novidades na Versão Atual
+
+### 💳 Sistema de Doações Aprimorado
+
+**Principais Melhorias:**
+- ✨ **Interface Modal**: Experiência mais fluida com modais para PIX e confirmação
+- 🚀 **PIX Instantâneo**: Geração automática de QR Code e Copia e Cola
+- 💳 **Stripe Checkout**: Integração completa com cartão e doações recorrentes
+- 🔄 **Fallback Inteligente**: Sugestão automática de PIX quando cartão falha
+- 📋 **Admin Completo**: Painel com filtros, status e gestão de doações
+- 🔍 **Webhooks**: Confirmação automática de pagamentos Stripe
+
+**Benefícios para Usuários:**
+- ✅ Processo de doação mais rápido
+- ✅ Múltiplas opções de pagamento
+- ✅ Interface mais amigável
+- ✅ Confirmações automáticas
+
+### 🛠️ Melhorias Técnicas
+
+- **Validação Separada**: Schemas de validação específicos para cada tipo de doação
+- **Tratamento de Erros**: Mensagens de erro mais informativas
+- **Logging Avançado**: Debug detalhado para facilitar manutenção
+- **Responsividade**: Modais otimizados para mobile
+
+---
+
+## 📝 Documentação Adicional
+
 ## 📞 Suporte
 
 ### Documentação
@@ -463,6 +523,8 @@ imagemin backend/uploads/*.jpg --out-dir=backend/uploads/optimized
 - [ ] Backend iniciando sem erros
 - [ ] Login admin funcionando
 - [ ] Integração de pagamentos testada
+- [ ] Doação PIX funcionando (QR Code + Copia e Cola)
+- [ ] Doação Stripe configurada (se desejado)
 - [ ] Email de notificação testado
 - [ ] WhatsApp link funcionando
 - [ ] Google Maps carregando

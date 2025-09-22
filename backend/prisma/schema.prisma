@@ -104,17 +104,21 @@ model Volunteer {
 }
 
 model Donation {
-  id            Int      @id @default(autoincrement())
-  amount        Decimal  @db.Decimal(10, 2)
-  currency      String   @default("BRL")
-  paymentMethod String
-  paymentId     String?
-  donorName     String?
-  donorEmail    String?
-  recurring     Boolean  @default(false)
-  status        String   @default("pending")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              Int       @id @default(autoincrement())
+  amount          Decimal   @db.Decimal(10, 2)
+  currency        String    @default("BRL")
+  paymentMethod   String
+  paymentId       String?
+  stripeSessionId String?   @unique
+  stripePaymentId String?
+  donorName       String?
+  donorEmail      String?
+  recurring       Boolean   @default(false)
+  status          String    @default("pending") // pending, completed, failed, refunded
+  paidAt          DateTime?
+  notes           String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@map("donations")
 }

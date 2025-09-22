@@ -147,9 +147,13 @@ DATABASE_URL="mysql://user:password@localhost:3306/ong_amigo_dos_amigos"
 # JWT
 JWT_SECRET=sua_chave_secreta_muito_segura
 
-# Stripe
-STRIPE_SECRET_KEY=sk_test_sua_chave_stripe
-STRIPE_PUBLISHABLE_KEY=pk_test_sua_chave_stripe
+# Stripe (Importante para Doações)
+STRIPE_SECRET_KEY=sk_test_sua_chave_stripe_real
+STRIPE_PUBLISHABLE_KEY=pk_test_sua_chave_stripe_real
+STRIPE_WEBHOOK_SECRET=whsec_sua_webhook_real
+
+# PIX (Doações Instantâneas)
+PIX_KEY=sua_chave_pix_aqui
 
 # Email
 SMTP_USER=seu_email@gmail.com
@@ -180,7 +184,8 @@ npx prisma generate        # Gerar cliente Prisma
 - **Home** - Apresentação da ONG com call-to-actions
 - **Sobre** - História, missão e equipe
 - **Adoção** - Catálogo de pets com filtros e busca
-- **Doações** - Sistema completo de doações (PIX/Cartão)
+- **Doações** - Sistema completo com PIX instantâneo e Stripe Checkout
+- **Modais Interativos** - Interface fluida para pagamentos e confirmações
 - **Voluntariado** - Formulário para cadastro de voluntários
 - **Castração Social** - Solicitação de castração a preço social
 - **Prestação de Contas** - Relatórios financeiros públicos
@@ -194,17 +199,19 @@ npx prisma generate        # Gerar cliente Prisma
 - **Adoções** - Acompanhar processos de adoção
 - **Blog** - Criar e editar posts
 - **Voluntários** - Gerenciar cadastros de voluntários
-- **Doações** - Visualizar histórico de doações
+- **Doações** - Painel completo com estatísticas, filtros e gestão de status
 - **Castração Social** - Gerenciar solicitações de castração
 - **Prestação de Contas** - Upload e gerenciamento de relatórios financeiros
 - **Contatos** - Gerenciar mensagens recebidas
 
-### 💳 Sistema de Pagamentos
+### 💳 Sistema de Doações
 
-- **PIX** - Geração automática de QR Code e Copia e Cola
-- **Cartão** - Integração com Stripe (crédito/débito)
-- **Recorrente** - Doações mensais automáticas
-- **Transparência** - Relatórios de uso das doações
+- **PIX Integrado** - Geração automática de QR Code e Copia e Cola
+- **Stripe Checkout** - Integração completa com cartão de crédito/débito
+- **Doações Recorrentes** - Assinaturas mensais automáticas via Stripe
+- **Interface Modal** - Experiência fluida com modais para PIX e confirmação
+- **Webhooks Stripe** - Confirmação automática de pagamentos
+- **Fallback Inteligente** - Sugestão automática de PIX quando cartão falha
 
 ### 📧 Comunicação
 
@@ -351,9 +358,12 @@ pnpm run test:e2e
 - `PUT /api/adoptions/:id` - Atualizar status (admin)
 
 #### Doações
-- `POST /api/payments/stripe/create-session` - Criar sessão Stripe
-- `POST /api/payments/pix/generate-qr` - Gerar PIX QR Code
-- `GET /api/donations/stats` - Estatísticas de doações
+- `POST /api/donations/pix` - Criar doação PIX com QR Code
+- `POST /api/donations/stripe` - Criar sessão Stripe Checkout
+- `GET /api/donations/stripe/status/:sessionId` - Verificar status do pagamento
+- `GET /api/donations` - Listar doações (admin)
+- `PATCH /api/donations/:id/status` - Atualizar status da doação (admin)
+- `POST /api/donations/webhook` - Webhook Stripe para confirmações
 
 #### Castração Social
 - `POST /api/social-castration` - Solicitar castração social

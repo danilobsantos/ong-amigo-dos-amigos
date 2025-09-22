@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
 import { donationsAPI } from '../lib/api';
 
@@ -17,6 +17,8 @@ const Donations = () => {
   const [recurring, setRecurring] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showPixPayment, setShowPixPayment] = useState(false);
+  const [pixData, setPIXData] = useState(null);
 
   const { register, handleSubmit, reset } = useForm();
 
@@ -55,19 +57,38 @@ const Donations = () => {
 
       const donationData = {
         amount: parseFloat(amount),
-        paymentMethod,
-        recurring,
+        recurring: recurring || false,
         donorName: data.donorName || null,
         donorEmail: data.donorEmail || null,
       };
 
-      await donationsAPI.create(donationData);
+      if (paymentMethod === 'pix') {
+        // Processar pagamento PIX
+        const response = await donationsAPI.createPix(donationData);
+        
+        // Mostrar QR Code PIX
+        setPIXData(response.data.pix);
+        setShowPixPayment(true);
+      } else if (paymentMethod === 'stripe') {
+        // Processar pagamento Stripe
+        try {
+          const response = await donationsAPI.createStripe(donationData);
+          
+          // Redirecionar para checkout do Stripe
+          window.location.href = response.data.checkoutUrl;
+        } catch (stripeError) {
+          console.error('Erro específico do Stripe:', stripeError);
+          
+          // Se for erro de configuração, sugerir PIX
+          if (stripeError.response?.status === 500) {
+            alert('Pagamento com cartão temporariamente indisponível. Que tal tentar com PIX? É mais rápido! 😊');
+            setPaymentMethod('pix');
+            return;
+          }
+          throw stripeError; // Re-throw para ser capturado pelo catch externo
+        }
+      }
       
-      setShowSuccess(true);
-      reset();
-      setSelectedAmount('');
-      setCustomAmount('');
-      setRecurring(false);
     } catch (error) {
       console.error('Erro ao processar doação:', error);
       alert('Erro ao processar doação. Tente novamente.');
@@ -80,40 +101,7 @@ const Donations = () => {
     return selectedAmount || customAmount;
   };
 
-  if (showSuccess) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="p-8 text-center">
-            <Heart className="w-16 h-16 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Obrigado pela sua doação!
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Sua contribuição fará uma diferença real na vida dos nossos cães. 
-              Você receberá um e-mail com os detalhes da doação.
-            </p>
-            <div className="space-y-3">
-              <Button 
-                onClick={() => setShowSuccess(false)} 
-                className="w-full"
-              >
-                Fazer Nova Doação
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => window.location.href = '/'}
-                className="w-full"
-              >
-                Voltar ao Início
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
+  // Main Donations Page
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -220,6 +208,9 @@ const Donations = () => {
                         <Label htmlFor="stripe" className="flex items-center gap-2 cursor-pointer">
                           <CreditCard className="w-5 h-5 text-blue-600" />
                           Cartão de Crédito/Débito
+                          <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                            Beta
+                          </span>
                         </Label>
                       </div>
                     </RadioGroup>
@@ -290,7 +281,7 @@ const Donations = () => {
               </CardContent>
             </Card>
 
-            {/* Outras Formas de Ajudar (moved here) */}
+            {/* Outras Formas de Ajudar */}
             <div className="mt-6">
               <Card>
                 <CardHeader>
@@ -312,7 +303,6 @@ const Donations = () => {
                 </CardContent>
               </Card>
             </div>
-
           </div>
 
           {/* Sidebar */}
@@ -388,11 +378,121 @@ const Donations = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* moved: Outras Formas de Ajudar is displayed under the form */}
           </div>
         </div>
       </div>
+
+      {/* Modal PIX Payment */}
+      <Dialog open={showPixPayment} onOpenChange={setShowPixPayment}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex justify-center gap-2">
+              <Smartphone className="w-6 h-6 text-green-600" />
+              Pagamento PIX
+            </DialogTitle>
+            <DialogDescription className={"text-center"}>
+              Escaneie o QR Code abaixo ou copie o código PIX para fazer sua doação.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="text-center space-y-6">
+            
+            
+            {pixData && (
+              <div className="space-y-4">
+                <div className="flex justify-center">
+                  <img 
+                    src={pixData.qrCode} 
+                    alt="QR Code PIX" 
+                    className="border rounded max-w-48"
+                  />
+                </div>
+                
+                <div className="bg-gray-100 p-3 rounded text-sm text-left">
+                  <p className="font-semibold mb-2">Chave PIX:</p>
+                  <p className="break-all text-gray-700">{pixData.key}</p>
+                </div>
+                
+                <div className="space-y-3">
+                  <Button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(pixData.payload);
+                      alert('Código PIX copiado!');
+                    }}
+                    className="w-full"
+                  >
+                    Copiar Código PIX
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowPixPayment(false);
+                      setShowSuccess(true);
+                      reset();
+                      setSelectedAmount('');
+                      setCustomAmount('');
+                      setRecurring(false);
+                    }}
+                    className="w-full"
+                  >
+                    Pagamento Realizado
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Agradecimento */}
+      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-center gap-2">
+              Obrigado pela sua doação!
+            </DialogTitle>
+            <DialogDescription>
+              Sua contribuição foi recebida com sucesso e fará toda a diferença
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="text-center space-y-6">
+            <div className="flex justify-center">
+              <Heart className="w-16 h-16 text-primary" />
+            </div>
+            
+            <p className="text-gray-600">
+              Sua contribuição fará uma diferença real na vida dos nossos bichinhos. 
+              Você receberá um e-mail com os detalhes da doação.
+            </p>
+            
+            <div className="space-y-3">
+              <Button 
+                onClick={() => {
+                  setShowSuccess(false);
+                  // Resetar o formulário
+                  reset();
+                  setSelectedAmount('');
+                  setCustomAmount('');
+                  setRecurring(false);
+                }} 
+                className="w-full"
+              >
+                Fazer Nova Doação
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.href = '/'}
+                className="w-full"
+              >
+                Voltar ao Início
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -83,8 +83,15 @@ export const volunteersAPI = {
 
 // Doações
 export const donationsAPI = {
-  create: (data) => api.post('/donations', data),
-  getAll: (params = {}) => api.get('/admin/donations', { params }),
+  createPix: (data) => api.post('/donations/pix', data),
+  createStripe: (data) => api.post('/donations/stripe', data),
+  checkStripeStatus: (sessionId) => api.get(`/donations/stripe/status/${sessionId}`),
+  getAll: (params = {}) => api.get('/donations', { params }),
+  updateStatus: (id, status, notes = null) => {
+    const payload = { status };
+    if (notes) payload.notes = notes;
+    return api.patch(`/donations/${id}/status`, payload);
+  },
 };
 
 // Contatos

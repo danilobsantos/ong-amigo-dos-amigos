@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Calendar, CreditCard } from 'lucide-react';
+import { DollarSign, Calendar, CreditCard, Filter, MoreVertical, Eye, Edit, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { donationsAPI } from '../../lib/api';
 import AdminLayout from '../../components/AdminLayout';
 
@@ -13,14 +19,29 @@ const AdminDonations = () => {
     thisMonth: 0,
     recurring: 0
   });
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState('all');
+  const [selectedDonation, setSelectedDonation] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editStatus, setEditStatus] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     loadDonations();
   }, []);
 
+  useEffect(() => {
+    loadDonations();
+  }, [filterStatus, filterPaymentMethod]);
+
   const loadDonations = async () => {
     try {
-      const response = await donationsAPI.getAll();
+      const params = {};
+      if (filterStatus !== 'all') params.status = filterStatus;
+      if (filterPaymentMethod !== 'all') params.paymentMethod = filterPaymentMethod;
+      
+      const response = await donationsAPI.getAll(params);
       const donationsList = response.data.donations || [];
       setDonations(donationsList);
       
@@ -38,6 +59,43 @@ const AdminDonations = () => {
       setLoading(false);
     }
   };
+
+  const handleEditDonation = (donation) => {
+    setSelectedDonation(donation);
+    setEditStatus(donation.status);
+    setEditNotes(donation.notes || '');
+    setShowEditModal(true);
+  };
+
+  const handleUpdateStatus = async () => {
+    if (!selectedDonation) return;
+    
+    try {
+      setUpdating(true);
+      await donationsAPI.updateStatus(selectedDonation.id, editStatus, editNotes);
+      
+      // Atualizar a lista
+      setDonations(donations.map(d => 
+        d.id === selectedDonation.id 
+          ? { ...d, status: editStatus, notes: editNotes }
+          : d
+      ));
+      
+      setShowEditModal(false);
+      setSelectedDonation(null);
+    } catch (error) {
+      console.error('Erro ao atualizar doação:', error);
+      alert('Erro ao atualizar doação');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const filteredDonations = donations.filter(donation => {
+    if (filterStatus !== 'all' && donation.status !== filterStatus) return false;
+    if (filterPaymentMethod !== 'all' && donation.paymentMethod !== filterPaymentMethod) return false;
+    return true;
+  });
 
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -108,7 +166,33 @@ const AdminDonations = () => {
         {/* Lista de Doações */}
         <Card>
           <CardHeader>
-            <CardTitle>Histórico de Doações ({donations.length})</CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle>Histórico de Doações ({filteredDonations.length})</CardTitle>
+              <div className="flex gap-2">
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Status</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="completed">Concluída</SelectItem>
+                    <SelectItem value="failed">Falhou</SelectItem>
+                    <SelectItem value="refunded">Reembolsada</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filterPaymentMethod} onValueChange={setFilterPaymentMethod}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Método" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Métodos</SelectItem>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="stripe">Cartão</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -122,7 +206,7 @@ const AdminDonations = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {donations.map((donation) => (
+                {filteredDonations.map((donation) => (
                   <div key={donation.id} className="p-4 border rounded-lg hover:bg-gray-50">
                     <div className="flex justify-between items-start mb-2">
                       <div>
@@ -131,11 +215,24 @@ const AdminDonations = () => {
                           {donation.donorName || 'Doador Anônimo'}
                         </p>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 items-center">
                         {getStatusBadge(donation.status)}
                         {donation.recurring && (
                           <Badge variant="outline">Recorrente</Badge>
                         )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleEditDonation(donation)}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Editar Status
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                     
@@ -152,12 +249,71 @@ const AdminDonations = () => {
                         )}
                       </div>
                     </div>
+                    
+                    {donation.notes && (
+                      <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                        <p className="text-sm text-yellow-800"><strong>Observações:</strong> {donation.notes}</p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
           </CardContent>
         </Card>
+
+        {/* Modal de Edição */}
+        <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Doação</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {selectedDonation && (
+                <div className="p-3 bg-gray-50 rounded">
+                  <p><strong>Valor:</strong> {formatCurrency(selectedDonation.amount)}</p>
+                  <p><strong>Doador:</strong> {selectedDonation.donorName || 'Anônimo'}</p>
+                  <p><strong>Data:</strong> {new Date(selectedDonation.createdAt).toLocaleDateString('pt-BR')}</p>
+                </div>
+              )}
+              
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select value={editStatus} onValueChange={setEditStatus}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="completed">Concluída</SelectItem>
+                    <SelectItem value="failed">Falhou</SelectItem>
+                    <SelectItem value="refunded">Reembolsada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="notes">Observações</Label>
+                <Textarea
+                  id="notes"
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  placeholder="Adicione observações sobre esta doação..."
+                  rows={3}
+                />
+              </div>
+              
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setShowEditModal(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleUpdateStatus} disabled={updating}>
+                  {updating ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );

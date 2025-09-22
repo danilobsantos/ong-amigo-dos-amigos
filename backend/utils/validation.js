@@ -70,6 +70,14 @@ const donationSchema = Joi.object({
   recurring: Joi.boolean()
 });
 
+// Validação para doação sem método de pagamento (usado nos endpoints específicos)
+const donationDataSchema = Joi.object({
+  amount: Joi.number().positive().min(1).max(10000).required(),
+  donorName: Joi.string().max(100).allow('', null),
+  donorEmail: Joi.string().email().allow('', null),
+  recurring: Joi.boolean()
+});
+
 module.exports = {
   dogSchema,
   adoptionSchema,
@@ -77,6 +85,7 @@ module.exports = {
   contactSchema,
   blogPostSchema,
   loginSchema,
-  donationSchema
+  donationSchema,
+  donationDataSchema
 };
 
