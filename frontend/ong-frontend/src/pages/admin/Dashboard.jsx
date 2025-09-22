@@ -89,7 +89,7 @@ const Dashboard = () => {
       link: '/admin/adocoes'
     },
     {
-      title: 'Voluntários',
+      title: 'Solicitações de Voluntários',
       value: dashboardData.stats.totalVolunteers,
       icon: Users,
       color: 'text-purple-600',
@@ -299,7 +299,7 @@ const Dashboard = () => {
                 <div className="text-2xl font-bold text-purple-600">
                   {dashboardData.stats.totalVolunteers}
                 </div>
-                <p className="text-sm text-gray-600">Novos Voluntários</p>
+                <p className="text-sm text-gray-600">Solicitações de Voluntários</p>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-emerald-600">

@@ -18,6 +18,9 @@ import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminDogs from './pages/admin/Dogs';
 import AdminBlog from './pages/admin/Blog';
+import CreatePost from './pages/admin/CreatePost';
+import EditPost from './pages/admin/EditPost';
+import PreviewPost from './pages/admin/PreviewPost';
 import AdminAdoptions from './pages/admin/Adoptions';
 import AdminVolunteers from './pages/admin/Volunteers';
 import AdminDonations from './pages/admin/Donations';
@@ -67,6 +70,9 @@ function App() {
                   <Route path="/caes" element={<AdminDogs />} />
                   <Route path="/usuarios" element={<AdminUsers />} />
                   <Route path="/blog" element={<AdminBlog />} />
+                  <Route path="/blog/create" element={<CreatePost />} />
+                  <Route path="/blog/edit/:id" element={<EditPost />} />
+                  <Route path="/blog/preview/:id" element={<PreviewPost />} />
                   <Route path="/adocoes" element={<AdminAdoptions onStatusChange={() => {
                     // Força reload da lista de cães se AdminDogs estiver montado
                     const evt = new CustomEvent('reload-dogs');

@@ -220,7 +220,7 @@ const Blog = () => {
                       {post.excerpt}
                     </p>
                     
-                    <Button asChild variant="outline" className="w-full">
+                    <Button asChild variant="default" className="w-full">
                       <Link to={`/blog/${post.slug}`}>
                         Ler Mais
                         <ArrowRight className="w-4 h-4 ml-2" />

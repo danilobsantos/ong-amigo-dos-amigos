@@ -140,7 +140,7 @@ const Adoption = () => {
           {/* Resultados */}
           <div className="mb-6">
             <p className="text-gray-600">
-              {pagination.total} cães encontrados
+              {pagination.total} pets encontrados
               {(filters.size || filters.gender || filters.search) && (
                 <span className="ml-2">
                   com os filtros aplicados

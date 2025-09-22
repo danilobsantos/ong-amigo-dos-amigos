@@ -7,7 +7,7 @@ Um site completo e moderno para a ONG Amigo dos Amigos, focado no resgate, cuida
 Este projeto foi desenvolvido para fornecer uma plataforma digital completa para a ONG Amigo dos Amigos, incluindo:
 
 - **Site institucional** com informações sobre a ONG
-- **Sistema de adoção** com catálogo de cães disponíveis
+- **Sistema de adoção** com catálogo de pets disponíveis
 - **Plataforma de doações** com PIX e cartão de crédito
 - **Blog** para compartilhar histórias e informações
 - **Sistema de voluntariado** para cadastro de interessados
@@ -179,7 +179,7 @@ npx prisma generate        # Gerar cliente Prisma
 
 - **Home** - Apresentação da ONG com call-to-actions
 - **Sobre** - História, missão e equipe
-- **Adoção** - Catálogo de cães com filtros e busca
+- **Adoção** - Catálogo de pets com filtros e busca
 - **Doações** - Sistema completo de doações (PIX/Cartão)
 - **Voluntariado** - Formulário para cadastro de voluntários
 - **Castração Social** - Solicitação de castração a preço social
@@ -190,7 +190,7 @@ npx prisma generate        # Gerar cliente Prisma
 ### 🔐 Área Administrativa
 
 - **Dashboard** - Visão geral com estatísticas
-- **Gerenciar Cães** - CRUD completo de animais
+- **Gerenciar Pets** - CRUD completo de animais
 - **Adoções** - Acompanhar processos de adoção
 - **Blog** - Criar e editar posts
 - **Voluntários** - Gerenciar cadastros de voluntários
@@ -338,8 +338,8 @@ pnpm run test:e2e
 - `POST /api/auth/logout` - Logout
 - `GET /api/auth/me` - Dados do usuário logado
 
-#### Cães
-- `GET /api/dogs` - Listar cães disponíveis
+#### Pets
+- `GET /api/dogs` - Listar pets disponíveis
 - `GET /api/dogs/:id` - Detalhes de um cão
 - `POST /api/dogs` - Criar novo cão (admin)
 - `PUT /api/dogs/:id` - Atualizar cão (admin)

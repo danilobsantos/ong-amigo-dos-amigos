@@ -219,7 +219,7 @@ const BlogPost = () => {
                         <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                           {relatedPost.excerpt}
                         </p>
-                        <Button asChild variant="outline" size="sm" className="w-full">
+                        <Button asChild variant="default" size="sm" className="w-full">
                           <Link to={`/blog/${relatedPost.slug}`}>
                             Ler Mais
                           </Link>

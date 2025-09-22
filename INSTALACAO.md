@@ -183,7 +183,7 @@ pnpm run dev
 ### Funcionalidades Disponíveis
 
 1. **Dashboard** - Visão geral das estatísticas
-2. **Gerenciar Cães** - Adicionar/editar cães para adoção
+2. **Gerenciar Pets** - Adicionar/editar pets para adoção
 3. **Blog** - Criar e publicar artigos
 4. **Adoções** - Acompanhar solicitações
 5. **Voluntários** - Gerenciar cadastros

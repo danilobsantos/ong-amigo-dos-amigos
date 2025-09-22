@@ -27,15 +27,15 @@ const AdminLayout = ({ children }) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-    { name: 'Cães', href: '/admin/caes', icon: PawPrint },
+    { name: 'Pets', href: '/admin/caes', icon: PawPrint },
     { name: 'Adoções', href: '/admin/adocoes', icon: UserCheck },
     { name: 'Blog', href: '/admin/blog', icon: FileText },
     { name: 'Voluntários', href: '/admin/voluntarios', icon: Users },
-    { name: 'Usuários', href: '/admin/usuarios', icon: Users },
     { name: 'Doações', href: '/admin/doacoes', icon: DollarSign },
-    { name: 'Contatos', href: '/admin/contatos', icon: MessageSquare },
     { name: 'Prestação de Contas', href: '/admin/prestacao-contas', icon: Receipt },
     { name: 'Castração Social', href: '/admin/castracao-social', icon: Scissors },
+    { name: 'Contatos', href: '/admin/contatos', icon: MessageSquare },
+    { name: 'Usuários', href: '/admin/usuarios', icon: Users },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -67,7 +67,7 @@ const AdminLayout = ({ children }) => {
                 <Heart className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Admin</h1>
+                <h1 className="text-lg font-bold text-gray-900">Painel</h1>
                 <p className="text-xs text-gray-600">Amigo dos Amigos</p>
               </div>
             </Link>

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
 import { volunteersAPI } from '../lib/api';
 
@@ -13,6 +14,8 @@ const Volunteer = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [selectedAreas, setSelectedAreas] = useState([]);
+  const [phoneValue, setPhoneValue] = useState('');
+  const [phoneError, setPhoneError] = useState('');
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
 
@@ -44,6 +47,33 @@ const Volunteer = () => {
     'Disponibilidade para treinamento inicial'
   ];
 
+  // Função para aplicar máscara de telefone
+  const formatPhone = (value) => {
+    // Remove tudo que não é dígito
+    const numbers = value.replace(/\D/g, '');
+    
+    // Aplica a máscara (XX) XXXXX-XXXX
+    if (numbers.length <= 11) {
+      return numbers
+        .replace(/(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2');
+    }
+    return value;
+  };
+
+  const handlePhoneChange = (e) => {
+    const formattedValue = formatPhone(e.target.value);
+    setPhoneValue(formattedValue);
+    
+    // Validar em tempo real
+    const numbers = formattedValue.replace(/\D/g, '');
+    if (numbers.length > 0 && numbers.length < 10) {
+      setPhoneError('Telefone deve ter pelo menos 10 dígitos');
+    } else {
+      setPhoneError('');
+    }
+  };
+
   const handleAreaChange = (areaId, checked) => {
     if (checked) {
       setSelectedAreas([...selectedAreas, areaId]);
@@ -61,8 +91,20 @@ const Volunteer = () => {
         return;
       }
 
+      // Validar telefone manualmente
+      const cleanPhone = phoneValue.replace(/\D/g, '');
+      if (!phoneValue.trim()) {
+        setPhoneError('Telefone é obrigatório');
+        return;
+      }
+      if (cleanPhone.length < 10) {
+        setPhoneError('Telefone deve ter pelo menos 10 dígitos');
+        return;
+      }
+
       const volunteerData = {
         ...data,
+        phone: cleanPhone,
         areas: selectedAreas
       };
 
@@ -70,6 +112,8 @@ const Volunteer = () => {
       setSubmitted(true);
       reset();
       setSelectedAreas([]);
+      setPhoneValue('');
+      setPhoneError('');
     } catch (error) {
       console.error('Erro ao enviar formulário:', error);
       alert('Erro ao enviar formulário. Tente novamente.');
@@ -78,33 +122,41 @@ const Volunteer = () => {
     }
   };
 
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="p-8 text-center">
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Modal de Confirmação */}
+      <Dialog open={submitted} onOpenChange={setSubmitted}>
+        <DialogContent className="max-w-md">
+          <DialogHeader className="text-center">
+            <div className="mx-auto mb-4">
+              <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
+            </div>
+            <DialogTitle className="text-2xl text-center font-bold text-gray-900">
               Cadastro Realizado!
-            </h2>
-            <p className="text-gray-600 mb-6">
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 text-center mt-4">
               Obrigado pelo seu interesse em ser voluntário! Entraremos em contato 
               em breve para dar continuidade ao processo.
-            </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 mt-6">
             <Button 
               onClick={() => setSubmitted(false)} 
-              className="w-full"
+              className="flex-1"
             >
               Fazer Novo Cadastro
             </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+            <Button 
+              variant="outline"
+              onClick={() => setSubmitted(false)}
+              className="flex-1"
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-  return (
-    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <section className="bg-primary text-white section-padding">
         <div className="container-max text-center">
@@ -134,7 +186,7 @@ const Volunteer = () => {
                     <h3 className="text-lg font-semibold">Informações Pessoais</h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
+                      <div className="space-y-2">
                         <Label htmlFor="name">Nome Completo *</Label>
                         <Input
                           id="name"
@@ -142,11 +194,11 @@ const Volunteer = () => {
                           className={errors.name ? 'border-red-500' : ''}
                         />
                         {errors.name && (
-                          <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+                          <p className="text-red-500 text-sm">{errors.name.message}</p>
                         )}
                       </div>
 
-                      <div>
+                      <div className="space-y-2">
                         <Label htmlFor="email">E-mail *</Label>
                         <Input
                           id="email"
@@ -161,26 +213,29 @@ const Volunteer = () => {
                           className={errors.email ? 'border-red-500' : ''}
                         />
                         {errors.email && (
-                          <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                          <p className="text-red-500 text-sm">{errors.email.message}</p>
                         )}
                       </div>
 
-                      <div>
+                      <div className="space-y-2">
                         <Label htmlFor="phone">Telefone *</Label>
                         <Input
                           id="phone"
-                          {...register('phone', { required: 'Telefone é obrigatório' })}
-                          className={errors.phone ? 'border-red-500' : ''}
+                          value={phoneValue}
+                          onChange={handlePhoneChange}
+                          placeholder="(11) 99999-9999"
+                          maxLength={15}
+                          className={phoneError ? 'border-red-500' : ''}
                         />
-                        {errors.phone && (
-                          <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+                        {phoneError && (
+                          <p className="text-red-500 text-sm">{phoneError}</p>
                         )}
                       </div>
                     </div>
                   </div>
 
                   {/* Disponibilidade */}
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="availability">Disponibilidade *</Label>
                     <Textarea
                       id="availability"
@@ -190,7 +245,7 @@ const Volunteer = () => {
                       rows={3}
                     />
                     {errors.availability && (
-                      <p className="text-red-500 text-sm mt-1">{errors.availability.message}</p>
+                      <p className="text-red-500 text-sm">{errors.availability.message}</p>
                     )}
                   </div>
 
@@ -219,7 +274,7 @@ const Volunteer = () => {
                   </div>
 
                   {/* Experiência */}
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="experience">Experiência com Animais (Opcional)</Label>
                     <Textarea
                       id="experience"

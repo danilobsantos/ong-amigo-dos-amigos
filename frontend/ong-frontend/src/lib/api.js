@@ -63,6 +63,8 @@ export const adoptionsAPI = {
 export const blogAPI = {
   getPosts: (params = {}) => api.get('/blog', { params }),
   getPost: (slug) => api.get(`/blog/${slug}`),
+  getPostById: (id) => api.get(`/admin/blog/${id}`),
+  getAllPosts: (params = {}) => api.get('/admin/blog', { params }),
   create: (data) => api.post('/admin/blog', data),
   update: (id, data) => api.put(`/admin/blog/${id}`, data),
   delete: (id) => api.delete(`/admin/blog/${id}`),
@@ -72,6 +74,11 @@ export const blogAPI = {
 export const volunteersAPI = {
   create: (data) => api.post('/volunteers', data),
   getAll: (params = {}) => api.get('/admin/volunteers', { params }),
+  updateStatus: (id, status, reason = null) => {
+    const payload = { status };
+    if (reason) payload.reason = reason;
+    return api.patch(`/admin/volunteers/${id}/status`, payload);
+  },
 };
 
 // Doações
