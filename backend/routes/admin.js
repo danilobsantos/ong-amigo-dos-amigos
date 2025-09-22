@@ -16,7 +16,7 @@ router.get('/dashboard', async (req, res) => {
       totalDogs,
       availableDogs,
       pendingAdoptions,
-      totalVolunteers,
+      pendingVolunteers,
       unreadContacts,
       totalDonations,
       socialCastrations,
@@ -25,7 +25,7 @@ router.get('/dashboard', async (req, res) => {
       prisma.dog.count(),
       prisma.dog.count({ where: { available: true } }),
       prisma.adoption.count({ where: { status: 'pending' } }),
-      prisma.volunteer.count(),
+      prisma.volunteer.count({ where: { status: 'pending' } }),
       prisma.contact.count({ where: { status: 'unread' } }),
       prisma.donation.aggregate({
         where: { status: 'completed' },
@@ -44,7 +44,7 @@ router.get('/dashboard', async (req, res) => {
         totalDogs,
         availableDogs,
         pendingAdoptions,
-        totalVolunteers,
+        totalVolunteers: pendingVolunteers,
         unreadContacts,
         totalDonations: totalDonations._sum.amount || 0,
         socialCastrations
@@ -72,6 +72,8 @@ router.get('/blog', async (req, res) => {
       prisma.blogPost.count()
     ]);
 
+    console.log('Posts encontrados:', posts.map(p => ({ id: p.id, title: p.title })));
+
     res.json({
       posts,
       pagination: {
@@ -83,6 +85,30 @@ router.get('/blog', async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao buscar posts admin:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Buscar post específico por ID (admin)
+router.get('/blog/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('Buscando post com ID:', id);
+
+    const post = await prisma.blogPost.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    console.log('Post encontrado:', post);
+
+    if (!post) {
+      console.log('Post não encontrado para ID:', id);
+      return res.status(404).json({ error: 'Post não encontrado' });
+    }
+
+    res.json({ post });
+  } catch (error) {
+    console.error('Erro ao buscar post:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
@@ -216,6 +242,44 @@ router.get('/volunteers', async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao buscar voluntários:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Atualizar status do voluntário
+router.patch('/volunteers/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, reason } = req.body;
+
+    // Validar status permitidos
+    const allowedStatuses = ['pending', 'approved', 'rejected', 'active', 'inactive'];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Status inválido' });
+    }
+
+    const volunteer = await prisma.volunteer.update({
+      where: { id: parseInt(id) },
+      data: {
+        status,
+        ...(reason && { rejectionReason: reason })
+      }
+    });
+
+    const volunteerWithAreas = {
+      ...volunteer,
+      areas: JSON.parse(volunteer.areas || '[]')
+    };
+
+    res.json({
+      message: 'Status do voluntário atualizado com sucesso',
+      volunteer: volunteerWithAreas
+    });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Voluntário não encontrado' });
+    }
+    console.error('Erro ao atualizar status do voluntário:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });

@@ -88,16 +88,17 @@ model BlogPost {
 }
 
 model Volunteer {
-  id           Int      @id @default(autoincrement())
-  name         String
-  email        String
-  phone        String
-  availability String   @db.Text
-  experience   String?  @db.Text
-  areas        String   @db.Text
-  status       String   @default("pending")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              Int      @id @default(autoincrement())
+  name            String
+  email           String
+  phone           String
+  availability    String   @db.Text
+  experience      String?  @db.Text
+  areas           String   @db.Text
+  status          String   @default("pending")
+  rejectionReason String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@map("volunteers")
 }

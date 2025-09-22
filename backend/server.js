@@ -31,6 +31,7 @@ app.use('/uploads', (req, res, next) => {
 
 // Rotas da API
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/admin', require('./routes/admin')); // Admin deve vir antes para evitar conflitos
 app.use('/api/dogs', require('./routes/dogs'));
 app.use('/api/uploads', require('./routes/uploads'));
 app.use('/api/adoptions', require('./routes/adoptions'));
@@ -42,7 +43,6 @@ app.use('/api/stats', require('./routes/stats'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/whatsapp', require('./routes/whatsapp'));
 app.use('/api/seo', require('./routes/seo'));
-app.use('/api/admin', require('./routes/admin'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/financial-reports', require('./routes/financial-reports'));
 app.use('/api/social-castration', require('./routes/social-castration'));

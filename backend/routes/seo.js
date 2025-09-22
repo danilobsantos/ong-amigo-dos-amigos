@@ -218,9 +218,9 @@ router.get('/meta-tags', async (req, res) => {
         // Meta tags padrão para páginas estáticas
         const defaultMetaTags = {
           '/': {
-            title: 'ONG Amigo dos Amigos - Resgatando e Cuidando de Cães Abandonados',
-            description: 'A ONG Amigo dos Amigos resgata, cuida e encontra lares amorosos para cães abandonados. Adote, doe ou seja voluntário. Juntos salvamos vidas!',
-            keywords: 'ONG, cães, adoção, doação, voluntariado, animais abandonados, resgate, São Paulo, pets'
+            title: 'ONG Amigo dos Amigos - Resgatando e Cuidando de Cães e Gatos Abandonados',
+            description: 'A ONG Amigo dos Amigos resgata, cuida e encontra lares amorosos para cães e gatos abandonados. Adote, doe ou seja voluntário. Juntos salvamos vidas!',
+            keywords: 'ONG, cães, gatos, adoção, doação, voluntariado, animais abandonados, resgate, São Paulo, pets'
           },
           '/sobre': {
             title: 'Sobre Nós | ONG Amigo dos Amigos',
@@ -228,9 +228,9 @@ router.get('/meta-tags', async (req, res) => {
             keywords: 'sobre, história, equipe, missão, valores, ONG, animais'
           },
           '/adocao': {
-            title: 'Adoção de Cães | ONG Amigo dos Amigos',
-            description: 'Encontre seu novo melhor amigo! Veja todos os cães disponíveis para adoção responsável na ONG Amigo dos Amigos.',
-            keywords: 'adoção, cães, pets, animais, adoção responsável, cachorro'
+            title: 'Adoção de Cães e Gatos | ONG Amigo dos Amigos',
+            description: 'Encontre seu novo melhor amigo! Veja todos os cães e gatos disponíveis para adoção responsável na ONG Amigo dos Amigos.',
+            keywords: 'adoção, cães, gatos, pets, animais, adoção responsável, cachorro, gato'
           },
           '/doacoes': {
             title: 'Faça uma Doação | ONG Amigo dos Amigos',
