@@ -3,20 +3,25 @@ PORT=3001
 NODE_ENV=development
 
 # Banco de Dados MySQL
-DATABASE_URL="mysql://nomedeusuario:senha@localhost:3306/nomedobanco"
+DATABASE_URL="mysql://user:passrword@server:3306/db_name"
 
 # JWT
-JWT_SECRET=uP1m9oBtWZ3r0sHq8hV5LQ9m3QyE5fRkX7z2yG==
+JWT_SECRET=your_jwt_secret_key
 JWT_EXPIRES_IN=7d
 
 # Email (Nodemailer)
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
-EMAIL_USER=contato@amigodosamigos.org
-EMAIL_PASS=sua_senha_email_aqui
+EMAIL_USER=your_email
+EMAIL_PASS=your_password
+
+# Email Settings
+FROM_EMAIL="your_email"
+ADMIN_EMAIL="your_email"
 
 # Stripe
 STRIPE_SECRET_KEY=sk_test_sua_chave_stripe_aqui
+STRIPE_PUBLISHABLE_KEY=pk_test_sua_chave_stripe_aqui
 STRIPE_WEBHOOK_SECRET=whsec_sua_webhook_secret_aqui
 
 # Upload de Arquivos
@@ -30,27 +35,30 @@ BACKEND_URL=http://localhost:3001
 # Google Maps
 GOOGLE_MAPS_API_KEY=sua_chave_google_maps_aqui
 
-# PIX
-PIX_KEY=contato@amigodosamigos.org
+# PIX Configuration
+PIX_KEY="your_pix_key"
+PIX_RECIPIENT_NAME="name_pix_recipient"
+PIX_RECIPIENT_CITY="city_pix_recipient"
 
 # WhatsApp
-WHATSAPP_NUMBER=5511999999999
+WHATSAPP_NUMBER=5535999999999
 
-# Email adicional
+# SMTP para emails (variáveis principais)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=contato@amigodosamigos.org
-SMTP_PASS=sua_senha_email_aqui
-FROM_EMAIL=contato@amigodosamigos.org
-ADMIN_EMAIL=admin@amigodosamigos.org
+SMTP_USER=your_email
+SMTP_PASS=your_password
+FROM_EMAIL=your_email
+ADMIN_EMAIL=your_email
 
 # Configurações da ONG
-ONG_NAME="ONG Amigo dos Amigos"
-ONG_ADDRESS="Rua das Flores, 123, Centro, São Paulo - SP, CEP: 01234-567"
-ONG_PHONE="(11) 99999-9999"
-ONG_EMAIL="contato@amigodosamigos.org"
+ONG_NAME="your_name"
+ONG_ADDRESS="your_address"
+ONG_PHONE="your_phone"
+ONG_EMAIL="your_email"
 
 # Redes Sociais
-FACEBOOK_URL=https://facebook.com/amigodosamigos
-INSTAGRAM_URL=https://instagram.com/amigodosamigos
-TWITTER_URL=https://twitter.com/amigodosamigos
+FACEBOOK_URL=your_facebook_url
+INSTAGRAM_URL=your_instagram_url
+TWITTER_URL=your_twitter_url
+YOUTUBE_URL=your_yt_url

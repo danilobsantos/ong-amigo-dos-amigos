@@ -1,19 +1,28 @@
+require('dotenv').config();
 const nodemailer = require('nodemailer');
 
 class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: process.env.SMTP_PORT || 587,
+      host: process.env.SMTP_HOST || process.env.EMAIL_HOST || 'smtp.gmail.com',
+      port: process.env.SMTP_PORT || process.env.EMAIL_PORT || 587,
       secure: false,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: process.env.SMTP_USER || process.env.EMAIL_USER,
+        pass: process.env.SMTP_PASS || process.env.EMAIL_PASS,
       },
     });
 
-    this.fromEmail = process.env.FROM_EMAIL || 'contato@amigodosamigos.org';
-    this.fromName = 'ONG Amigo dos Amigos';
+    this.fromEmail = process.env.FROM_EMAIL || process.env.EMAIL_USER || 'ongamigodosamigos@gmail.com';
+    this.fromName = process.env.ONG_NAME || 'ONG Amigo dos Amigos';
+    this.adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'ongamigodosamigos@gmail.com';
+    
+    console.log('📧 Configuração de Email:');
+    console.log('Host:', this.transporter.options.host);
+    console.log('Port:', this.transporter.options.port);
+    console.log('User:', this.transporter.options.auth.user);
+    console.log('From:', this.fromEmail);
+    console.log('Admin:', this.adminEmail);
   }
 
   // Enviar email genérico
@@ -243,7 +252,7 @@ class EmailService {
 
   // Notificação interna para a equipe
   async sendInternalNotification(type, data) {
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@amigodosamigos.org';
+    const adminEmail = this.adminEmail;
     
     let subject, html;
     
