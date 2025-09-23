@@ -18,6 +18,12 @@ if (!fs.existsSync(FRONTEND_DOGS_PATH)) {
   fs.mkdirSync(FRONTEND_DOGS_PATH, { recursive: true });
 }
 
+// Ensure frontend public images/ exists for logos
+const FRONTEND_IMAGES_PATH = path.join(__dirname, '..', '..', 'frontend', 'ong-frontend', 'public', 'images');
+if (!fs.existsSync(FRONTEND_IMAGES_PATH)) {
+  fs.mkdirSync(FRONTEND_IMAGES_PATH, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_PATH),
   filename: (req, file, cb) => {
@@ -52,6 +58,54 @@ router.post('/', upload.array('images', 12), (req, res) => {
     console.error('Erro no upload:', err);
     res.status(500).json({ error: 'Erro ao processar upload' });
   }
+});
+
+// Upload logo (admin) - single image with specific size requirements
+router.post('/logo', (req, res) => {
+  const upload = multer({
+    storage,
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB max
+    },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Apenas arquivos de imagem são permitidos'), false);
+      }
+    }
+  }).single('logo');
+
+  upload(req, res, (err) => {
+    if (err) {
+      console.error('Erro no upload da logo:', err);
+      return res.status(400).json({ error: err.message });
+    }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+      }
+
+      const base = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3001}`;
+      
+      // Copy file to frontend public images folder (so frontend can serve it as /images/...)
+      try {
+        const src = path.join(UPLOAD_PATH, req.file.filename);
+        const dest = path.join(FRONTEND_IMAGES_PATH, req.file.filename);
+        fs.copyFileSync(src, dest);
+      } catch (copyErr) {
+        console.warn('Não foi possível copiar para pasta frontend:', copyErr.message);
+      }
+
+      // Return URL under /uploads (backend) for compatibility
+      const url = `${base}/uploads/${req.file.filename}`;
+      res.json({ url, filename: req.file.filename });
+    } catch (err) {
+      console.error('Erro ao processar upload da logo:', err);
+      res.status(500).json({ error: 'Erro ao processar upload' });
+    }
+  });
 });
 
 module.exports = router;

@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Heart, Phone, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MessageCircleCodeIcon } from 'lucide-react';
 import { MessageCircleHeartIcon } from 'lucide-react';
 import { MessageCircleIcon } from 'lucide-react';
+import { SettingsContext } from '../lib/settingsContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { settings } = useContext(SettingsContext);
 
   const navigation = [
     { name: 'Início', href: '/' },
@@ -28,7 +30,17 @@ const Header = () => {
         <div className="flex items-center justify-between h-24">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <img src="/images/logo.png" alt="ONG Amigo dos Amigos Logo" className="h-20 w-auto" />
+            {settings?.logo ? (
+              <img 
+                src={settings.logo} 
+                alt={settings.siteName} 
+                className="h-20 w-auto object-contain" 
+              />
+            ) : (
+              <div className="h-20 w-32 bg-primary/10 rounded flex items-center justify-center">
+                <span className="text-primary font-bold text-sm">Logo</span>
+              </div>
+            )}
           </Link>
 
           {/* Navegação Desktop */}
