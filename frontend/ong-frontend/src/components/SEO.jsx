@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
-import React from 'react';
+import React, { useContext } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { SettingsContext } from '../lib/settingsContext';
 
 const SEO = ({ 
   title, 
@@ -14,18 +15,28 @@ const SEO = ({
   modifiedTime,
   article = false
 }) => {
-  const siteUrl = process.env.REACT_APP_SITE_URL || 'https://amigodosamigos.org';
-  const siteName = 'ONG Amigo dos Amigos';
-  const defaultTitle = 'ONG Amigo dos Amigos - Resgatando e Cuidando de Cães Abandonados';
-  const defaultDescription = 'A ONG Amigo dos Amigos resgata, cuida e encontra lares amorosos para cães abandonados. Adote, doe ou seja voluntário. Juntos salvamos vidas!';
+  const { settings } = useContext(SettingsContext);
+  
+  const siteUrl = process.env.REACT_APP_SITE_URL;
+  const siteName = settings?.siteName || 'ONG Amigo dos Amigos';
+  const defaultTitle = settings?.siteName ? `${settings.siteName} - Resgatando e Cuidando de Cães Abandonados` : 'ONG Amigo dos Amigos - Resgatando e Cuidando de Cães Abandonados';
+  const defaultDescription = settings?.description || 'A ONG Amigo dos Amigos resgata, cuida e encontra lares amorosos para cães abandonados. Adote, doe ou seja voluntário. Juntos salvamos vidas!';
   const defaultImage = `${siteUrl}/images/og-image.jpg`;
-  const defaultKeywords = 'ONG, cães, adoção, doação, voluntariado, animais abandonados, resgate, São Paulo, pets';
+  const defaultKeywords = settings?.keywords || 'ONG, cães, adoção, doação, voluntariado, animais abandonados, resgate, São Paulo, pets';
 
   const seoTitle = title ? `${title} | ${siteName}` : defaultTitle;
   const seoDescription = description || defaultDescription;
   const seoImage = image || defaultImage;
   const seoUrl = url || siteUrl;
   const seoKeywords = keywords || defaultKeywords;
+
+  // Extrair informações de endereço se disponível
+  const addressLines = settings?.address ? settings.address.split('\n') : [];
+  const streetAddress = addressLines[0] || "Rua das Flores, 123";
+  const addressParts = addressLines[1] ? addressLines[1].split(' - ') : ["São Paulo", "SP"];
+  const addressLocality = addressParts[0] || "São Paulo";
+  const addressRegion = addressParts[1] || "SP";
+  const postalCode = addressLines[2] ? addressLines[2].replace('CEP: ', '') : "01234-567";
 
   return (
     <Helmet>
@@ -93,17 +104,17 @@ const SEO = ({
           "image": seoImage,
           "address": {
             "@type": "PostalAddress",
-            "streetAddress": "Rua das Flores, 123",
-            "addressLocality": "São Paulo",
-            "addressRegion": "SP",
-            "postalCode": "01234-567",
+            "streetAddress": streetAddress,
+            "addressLocality": addressLocality,
+            "addressRegion": addressRegion,
+            "postalCode": postalCode,
             "addressCountry": "BR"
           },
           "contactPoint": {
             "@type": "ContactPoint",
-            "telephone": "+55-11-99999-9999",
+            "telephone": settings?.phone,
             "contactType": "customer service",
-            "email": "contato@amigodosamigos.org"
+            "email": settings?.email
           },
           "sameAs": [
             "https://facebook.com/amigodosamigos",
@@ -113,7 +124,7 @@ const SEO = ({
           "foundingDate": "2019",
           "areaServed": {
             "@type": "Place",
-            "name": "São Paulo, Brasil"
+            "name": `${addressLocality}, Brasil`
           },
           "knowsAbout": [
             "Resgate de animais",
@@ -129,7 +140,7 @@ const SEO = ({
 
 // Componente específico para páginas de cães
 export const DogSEO = ({ dog }) => {
-  const siteUrl = process.env.REACT_APP_SITE_URL || 'https://amigodosamigos.org';
+  const siteUrl = process.env.REACT_APP_SITE_URL;
   
   return (
     <SEO
@@ -191,7 +202,7 @@ export const DogSEO = ({ dog }) => {
 
 // Componente específico para posts do blog
 export const BlogSEO = ({ post }) => {
-  const siteUrl = process.env.REACT_APP_SITE_URL || 'https://amigodosamigos.org';
+  const siteUrl = process.env.REACT_APP_SITE_URL;
   
   return (
     <SEO

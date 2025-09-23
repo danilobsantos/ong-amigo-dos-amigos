@@ -18,7 +18,7 @@ import {
   Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../lib/authContext';
 
 const AdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -46,63 +47,65 @@ const ScrollToTop = () => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <ScrollToTop />
-        <div className="min-h-screen flex flex-col">
-          <Routes>
-            {/* Rotas públicas */}
-            <Route path="/*" element={
-              <>
-                <Header />
-                <main className="flex-1">
+      <SettingsProvider>
+        <Router>
+          <ScrollToTop />
+          <div className="min-h-screen flex flex-col">
+            <Routes>
+              {/* Rotas públicas */}
+              <Route path="/*" element={
+                <>
+                  <Header />
+                  <main className="flex-1">
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/sobre" element={<About />} />
+                      <Route path="/adocao" element={<Adoption />} />
+                      <Route path="/adocao/:id" element={<DogDetail />} />
+                      <Route path="/doacoes" element={<Donations />} />
+                      <Route path="/voluntariado" element={<Volunteer />} />
+                      <Route path="/blog" element={<Blog />} />
+                      <Route path="/blog/:slug" element={<BlogPost />} />
+                      <Route path="/contato" element={<Contact />} />
+                      <Route path="/prestacao-contas" element={<FinancialReports />} />
+                      <Route path="/castracao-social" element={<SocialCastration />} />
+                    </Routes>
+                  </main>
+                  <Footer />
+                </>
+              } />
+              
+              {/* Rotas administrativas */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/*" element={
+                <ProtectedRoute>
                   <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/sobre" element={<About />} />
-                    <Route path="/adocao" element={<Adoption />} />
-                    <Route path="/adocao/:id" element={<DogDetail />} />
-                    <Route path="/doacoes" element={<Donations />} />
-                    <Route path="/voluntariado" element={<Volunteer />} />
-                    <Route path="/blog" element={<Blog />} />
-                    <Route path="/blog/:slug" element={<BlogPost />} />
-                    <Route path="/contato" element={<Contact />} />
-                    <Route path="/prestacao-contas" element={<FinancialReports />} />
-                    <Route path="/castracao-social" element={<SocialCastration />} />
+                    <Route path="/" element={<AdminDashboard />} />
+                    <Route path="/dashboard" element={<AdminDashboard />} />
+                    <Route path="/caes" element={<AdminDogs />} />
+                    <Route path="/usuarios" element={<AdminUsers />} />
+                    <Route path="/blog" element={<AdminBlog />} />
+                    <Route path="/blog/create" element={<CreatePost />} />
+                    <Route path="/blog/edit/:id" element={<EditPost />} />
+                    <Route path="/blog/preview/:id" element={<PreviewPost />} />
+                    <Route path="/adocoes" element={<AdminAdoptions onStatusChange={() => {
+                      // Força reload da lista de cães se AdminDogs estiver montado
+                      const evt = new CustomEvent('reload-dogs');
+                      window.dispatchEvent(evt);
+                    }} />} />
+                    <Route path="/voluntarios" element={<AdminVolunteers />} />
+                    <Route path="/doacoes" element={<AdminDonations />} />
+                    <Route path="/contatos" element={<AdminContacts />} />
+                    <Route path="/prestacao-contas" element={<AdminFinancialReports />} />
+                    <Route path="/castracao-social" element={<AdminSocialCastration />} />
+                    <Route path="/configuracoes" element={<Settings />} />
                   </Routes>
-                </main>
-                <Footer />
-              </>
-            } />
-            
-            {/* Rotas administrativas */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/*" element={
-              <ProtectedRoute>
-                <Routes>
-                  <Route path="/" element={<AdminDashboard />} />
-                  <Route path="/dashboard" element={<AdminDashboard />} />
-                  <Route path="/caes" element={<AdminDogs />} />
-                  <Route path="/usuarios" element={<AdminUsers />} />
-                  <Route path="/blog" element={<AdminBlog />} />
-                  <Route path="/blog/create" element={<CreatePost />} />
-                  <Route path="/blog/edit/:id" element={<EditPost />} />
-                  <Route path="/blog/preview/:id" element={<PreviewPost />} />
-                  <Route path="/adocoes" element={<AdminAdoptions onStatusChange={() => {
-                    // Força reload da lista de cães se AdminDogs estiver montado
-                    const evt = new CustomEvent('reload-dogs');
-                    window.dispatchEvent(evt);
-                  }} />} />
-                  <Route path="/voluntarios" element={<AdminVolunteers />} />
-                  <Route path="/doacoes" element={<AdminDonations />} />
-                  <Route path="/contatos" element={<AdminContacts />} />
-                  <Route path="/prestacao-contas" element={<AdminFinancialReports />} />
-                  <Route path="/castracao-social" element={<AdminSocialCastration />} />
-                  <Route path="/configuracoes" element={<Settings />} />
-                </Routes>
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </div>
-      </Router>
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </div>
+        </Router>
+      </SettingsProvider>
     </AuthProvider>
   );
 }

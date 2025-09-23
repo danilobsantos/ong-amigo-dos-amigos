@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Mail, Clock, MessageCircle, Send, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,34 +8,48 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
-import { contactsAPI } from '../lib/api';
+import { contactsAPI, adminAPI } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 
 const Contact = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [subject, setSubject] = useState('');
+  const [settings, setSettings] = useState(null);
   const navigate = useNavigate();
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const response = await adminAPI.getSettings();
+      setSettings(response.data.settings);
+    } catch (error) {
+      console.error('Erro ao carregar configurações:', error);
+    }
+  };
 
   const contactInfo = [
     {
       icon: MapPin,
       title: 'Endereço',
-      content: 'Rua das Flores, 123\nCentro, São Paulo - SP\nCEP: 01234-567',
+      content: settings?.address || 'Rua ABC, 123\nCentro, São Paulo - SP\nCEP: 01234-567',
       color: 'text-red-500'
     },
     {
       icon: Phone,
       title: 'Telefone',
-      content: '(11) 99999-9999\n(11) 3333-4444',
+      content: settings?.phone || '(11) 99999-9999\n(11) 3333-4444',
       color: 'text-green-500'
     },
     {
       icon: Mail,
       title: 'E-mail',
-      content: 'contato@amigodosamigos.org\nadocao@amigodosamigos.org',
+      content: settings?.email || 'seuemail@email.com.br',
       color: 'text-blue-500'
     },
     {
@@ -101,25 +115,26 @@ const Contact = () => {
         </section>
 
         <div className="container-max section-padding">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Formulário de Contato */}
-            <div>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            {/* Formulário de Contato - Ocupa 2 colunas em telas grandes */}
+            <div className="xl:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-xl">
                     <MessageCircle className="w-6 h-6 text-primary" />
                     Envie sua Mensagem
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <Label htmlFor="name" className="mb-2">Nome Completo *</Label>
+                        <Label htmlFor="name" className="mb-2 text-base">Nome Completo *</Label>
                         <Input
                           id="name"
                           {...register('name', { required: 'Nome é obrigatório' })}
                           className={errors.name ? 'border-red-500' : ''}
+                          placeholder="Seu nome completo"
                         />
                         {errors.name && (
                           <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
@@ -127,7 +142,7 @@ const Contact = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor="email" className="mb-2">E-mail *</Label>
+                        <Label htmlFor="email" className="mb-2 text-base">E-mail *</Label>
                         <Input
                           id="email"
                           type="email"
@@ -139,6 +154,7 @@ const Contact = () => {
                             }
                           })}
                           className={errors.email ? 'border-red-500' : ''}
+                          placeholder="seu.email@exemplo.com"
                         />
                         {errors.email && (
                           <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
@@ -147,7 +163,7 @@ const Contact = () => {
                     </div>
 
                     <div>
-                      <Label htmlFor="subject" className="mb-2">Assunto</Label>
+                      <Label htmlFor="subject" className="mb-2 text-base">Assunto</Label>
                       <Select value={subject} onValueChange={setSubject}>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o assunto" />
@@ -163,12 +179,12 @@ const Contact = () => {
                     </div>
 
                     <div>
-                      <Label htmlFor="message" className="mb-2">Mensagem *</Label>
+                      <Label htmlFor="message" className="mb-2 text-base">Mensagem *</Label>
                       <Textarea
                         id="message"
                         {...register('message', { required: 'Mensagem é obrigatória' })}
-                        className={errors.message ? 'border-red-500' : ''}
-                        placeholder="Digite sua mensagem aqui..."
+                        className={`min-h-[190px] ${errors.message ? 'border-red-500' : ''}`}
+                        placeholder="Digite sua mensagem aqui... Seja o mais detalhado possível para que possamos ajudá-lo da melhor forma."
                         rows={6}
                       />
                       {errors.message && (
@@ -182,11 +198,16 @@ const Contact = () => {
                       size="lg"
                       className="w-full"
                     >
-                      {submitting ? 'Enviando...' : (
-                        <>
-                          <Send className="w-4 h-4 mr-2" />
+                      {submitting ? (
+                        <div className="flex items-center">
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                          Enviando...
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <Send className="w-5 h-5 mr-2" />
                           Enviar Mensagem
-                        </>
+                        </div>
                       )}
                     </Button>
                   </form>
@@ -194,16 +215,17 @@ const Contact = () => {
               </Card>
 
               {/* WhatsApp */}
-              <Card className="mt-6">
-                <CardContent className="p-6">
+              <Card className="mt-4">
+                <CardContent className="p-2">
                   <div className="text-center">
-                    <h3 className="text-lg font-semibold mb-4">Prefere WhatsApp?</h3>
-                    <p className="text-gray-600 mb-4">
+                    <MessageCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                    <h3 className="text-2xl font-bold">Prefere WhatsApp?</h3>
+                    <p className="text-gray-600 mb-6 text-lg">
                       Para um atendimento mais rápido, entre em contato pelo WhatsApp
                     </p>
-                    <Button asChild size="lg" className="bg-green-500 hover:bg-green-600">
+                    <Button asChild size="lg" className="bg-green-500 hover:bg-green-600 h-12 px-8 text-lg">
                       <a 
-                        href="https://wa.me/5511999999999?text=Olá! Gostaria de saber mais sobre a ONG Amigo dos Amigos"
+                        href={settings?.whatsapp ? `https://wa.me/55${settings.whatsapp.replace(/\D/g, '')}?text=Olá! Gostaria de saber mais sobre a ONG Amigo dos Amigos` : "https://wa.me/5511999999999?text=Olá! Gostaria de saber mais sobre a ONG Amigo dos Amigos"}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -219,11 +241,11 @@ const Contact = () => {
             {/* Informações de Contato */}
             <div className="space-y-6">
               {/* Informações */}
-              <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-4">
                 {contactInfo.map((info, index) => (
                   <Card key={index} className="card-hover">
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
+                    <CardContent>
+                      <div className="flex items-start gap-2">
                         <div className={`p-3 rounded-lg bg-gray-100 ${info.color}`}>
                           <info.icon className="w-6 h-6" />
                         </div>
@@ -237,44 +259,45 @@ const Contact = () => {
                 ))}
               </div>
 
-              {/* Mapa */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Nossa Localização</CardTitle>
+              {/* 
+              --MAPA--
+              <Card className="shadow-sm">
+                <CardHeader className="p-4">
+                  <CardTitle className="text-lg">Nossa Localização</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <div className="w-full h-64 bg-gray-200 rounded-b-lg flex items-center justify-center">
+                  <div className="w-full h-48 bg-gray-200 rounded-b-lg flex items-center justify-center">
                     <div className="text-center text-gray-500">
-                      <MapPin className="w-12 h-12 mx-auto mb-2" />
-                      <p>Mapa do Google Maps</p>
-                      <p className="text-sm">Rua das Flores, 123 - Centro, São Paulo</p>
+                      <MapPin className="w-8 h-8 mx-auto mb-2" />
+                      <p className="font-medium">Mapa do Google Maps</p>
+                      <p className="text-sm mt-1">{settings?.address ? settings.address.split('\n')[0] : 'Rua das Flores, 123 - Centro, São Paulo'}</p>
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </Card> */}
 
               {/* Dicas */}
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-blue-50 border-blue-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-blue-800">Dicas para o Contato</CardTitle>
+                  <CardTitle className="text-blue-800 text-lg">Dicas para o Contato</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-sm text-blue-700">
                     <li className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                      Para adoções, visite nossa página de cães disponíveis primeiro
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>Para adoções, visite nossa página de cães disponíveis primeiro</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                      Em emergências com animais, ligue diretamente para nosso telefone
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>Em emergências com animais, ligue diretamente para nosso telefone</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                      Para doações, acesse nossa página específica com todas as opções
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>Para doações, acesse nossa página específica com todas as opções</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                      Suas mensagens são enviadas diretamente por email e respondemos em até 24 horas
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>Suas mensagens são enviadas diretamente por email e respondemos em até 24 horas</span>
                     </li>
                   </ul>
                 </CardContent>
