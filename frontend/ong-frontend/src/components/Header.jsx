@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Heart, Phone } from 'lucide-react';
+import { Menu, X, Heart, Phone, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MessageCircleCodeIcon } from 'lucide-react';
 import { MessageCircleHeartIcon } from 'lucide-react';
@@ -52,12 +52,14 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             <Button asChild variant="outline" size="lg">
               <Link to="/contato">
-                <MessageCircleIcon className="w-4 h-4 mr-2" />
+                <MessageCircleIcon className="w-4 h-4" />
                 Contato
               </Link>
             </Button>
             <Button asChild className="btn-accent">
-              <Link to="/doacoes">Doar Agora</Link>
+              <Link to="/doacoes"> 
+              <DollarSign className="w-5 h-5" />
+              Doar Agora</Link>
             </Button>
           </div>
 
