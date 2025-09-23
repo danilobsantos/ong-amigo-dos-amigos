@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { adminAPI } from '../lib/api';
+import { settingsAPI } from '../lib/api';
 import { SettingsContext } from '../lib/settingsContext';
 
 export const SettingsProvider = ({ children }) => {
@@ -12,7 +12,7 @@ export const SettingsProvider = ({ children }) => {
 
   const loadSettings = async () => {
     try {
-      const response = await adminAPI.getSettings();
+      const response = await settingsAPI.getPublicSettings();
       setSettings(response.data.settings);
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);

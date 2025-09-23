@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
-import { contactsAPI, adminAPI } from '../lib/api';
+import { contactsAPI, settingsAPI } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 
 const Contact = () => {
@@ -26,7 +26,7 @@ const Contact = () => {
 
   const loadSettings = async () => {
     try {
-      const response = await adminAPI.getSettings();
+      const response = await settingsAPI.getPublicSettings();
       setSettings(response.data.settings);
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
