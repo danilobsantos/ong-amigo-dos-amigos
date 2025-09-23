@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Mail, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
 import { Youtube } from 'lucide-react';
-import { adminAPI } from '../lib/api';
+import { settingsAPI } from '../lib/api';
 
 const Footer = () => {
   const [settings, setSettings] = useState(null);
@@ -13,7 +13,7 @@ const Footer = () => {
 
   const loadSettings = async () => {
     try {
-      const response = await adminAPI.getSettings();
+      const response = await settingsAPI.getPublicSettings();
       setSettings(response.data.settings);
     } catch (error) {
       console.error('Erro ao carregar configurações no footer:', error);

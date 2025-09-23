@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
-import { volunteersAPI, adminAPI } from '../lib/api';
+import { volunteersAPI, settingsAPI } from '../lib/api';
 
 const Volunteer = () => {
   const [submitting, setSubmitting] = useState(false);
@@ -26,7 +26,7 @@ const Volunteer = () => {
 
   const loadSettings = async () => {
     try {
-      const response = await adminAPI.getSettings();
+      const response = await settingsAPI.getPublicSettings();
       setSettings(response.data.settings);
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
