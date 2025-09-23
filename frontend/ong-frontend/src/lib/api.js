@@ -115,6 +115,8 @@ export const authAPI = {
 // Admin
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
+  getSettings: () => api.get('/admin/settings'),
+  updateSettings: (data) => api.put('/admin/settings', data),
 };
 
 // Users (admin)

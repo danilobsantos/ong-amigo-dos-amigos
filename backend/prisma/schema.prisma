@@ -202,3 +202,17 @@ model SocialCastration {
 
   @@map("social_castrations")
 }
+
+model Setting {
+  id        Int      @id @default(autoincrement())
+  siteName  String
+  logo      String?
+  address   String?
+  phone     String?
+  whatsapp  String?
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}

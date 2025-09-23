@@ -14,6 +14,7 @@ Este projeto foi desenvolvido para fornecer uma plataforma digital completa para
 - **Castração social** formulário para solicitação de castração a preço social
 - **Prestação de contas** transparência financeira com relatórios públicos
 - **Área administrativa** para gerenciar todo o conteúdo
+- **Configurações do site** para gerenciar informações gerais da ONG
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -203,6 +204,8 @@ npx prisma generate        # Gerar cliente Prisma
 - **Castração Social** - Gerenciar solicitações de castração
 - **Prestação de Contas** - Upload e gerenciamento de relatórios financeiros
 - **Contatos** - Gerenciar mensagens recebidas
+- **Configurações** - Gerenciar informações gerais do site (nome, logo, contato, etc.)
+- **Usuários** - Gerenciar administradores do sistema
 
 ### 💳 Sistema de Doações
 
@@ -345,6 +348,10 @@ pnpm run test:e2e
 - `POST /api/auth/logout` - Logout
 - `GET /api/auth/me` - Dados do usuário logado
 
+#### Configurações
+- `GET /api/admin/settings` - Obter configurações do site
+- `PUT /api/admin/settings` - Atualizar configurações do site
+
 #### Pets
 - `GET /api/dogs` - Listar pets disponíveis
 - `GET /api/dogs/:id` - Detalhes de um cão
@@ -445,6 +452,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - [ ] Sistema de eventos
 - [x] Sistema de castração social
 - [x] Sistema de prestação de contas
+- [x] Sistema de configurações do site
 
 ### Melhorias Contínuas
 - [ ] Testes automatizados completos

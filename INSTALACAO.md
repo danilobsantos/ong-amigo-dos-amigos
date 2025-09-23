@@ -138,7 +138,7 @@ exit
 # Gerar cliente Prisma
 npx prisma generate
 
-# Aplicar schema
+# Aplicar schema (incluindo nova tabela de configurações)
 npx prisma db push
 
 # Executar setup inicial
@@ -195,6 +195,7 @@ pnpm run dev
 5. **Voluntários** - Gerenciar cadastros
 6. **Doações** - Visualizar, filtrar e gerenciar todas as doações (PIX/Stripe)
 7. **Contatos** - Responder mensagens
+8. **Configurações** - Gerenciar informações gerais do site (nome, logo, contato, etc.)
 
 ## 🛠️ Configurações Avançadas
 
@@ -475,6 +476,20 @@ imagemin backend/uploads/*.jpg --out-dir=backend/uploads/optimized
 - ✅ Interface mais amigável
 - ✅ Confirmações automáticas
 
+### ⚙️ Nova Funcionalidade: Configurações do Site
+
+**Principais Recursos:**
+- ✨ **Configurações Centralizadas**: Gerencie todas as informações da ONG em um único lugar
+- 🖼️ **Logo Personalizado**: Adicione o logo da sua organização
+- 🏢 **Informações de Contato**: Mantenha endereço, telefone, WhatsApp e email atualizados
+- 🌐 **Nome do Site**: Personalize o nome exibido no site
+
+**Como Acessar:**
+1. Faça login na área administrativa
+2. Clique em "Configurações" no menu lateral
+3. Preencha as informações desejadas
+4. Clique em "Salvar Configurações"
+
 ### 🛠️ Melhorias Técnicas
 
 - **Validação Separada**: Schemas de validação específicos para cada tipo de doação
@@ -528,6 +543,7 @@ imagemin backend/uploads/*.jpg --out-dir=backend/uploads/optimized
 - [ ] Email de notificação testado
 - [ ] WhatsApp link funcionando
 - [ ] Google Maps carregando
+- [ ] Configurações do site acessíveis
 - [ ] Deploy em produção realizado
 
 ---

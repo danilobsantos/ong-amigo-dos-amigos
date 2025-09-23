@@ -57,6 +57,77 @@ router.get('/dashboard', async (req, res) => {
   }
 });
 
+// Configurações do site
+router.get('/settings', async (req, res) => {
+  try {
+    // Buscar as configurações do site
+    let settings = await prisma.setting.findFirst();
+    
+    // Se não existirem configurações, criar com valores padrão
+    if (!settings) {
+      settings = await prisma.setting.create({
+        data: {
+          siteName: 'ONG Amigo dos Amigos',
+          logo: '',
+          address: '',
+          phone: '',
+          whatsapp: '',
+          email: ''
+        }
+      });
+    }
+
+    res.json({ settings });
+  } catch (error) {
+    console.error('Erro ao buscar configurações:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+router.put('/settings', async (req, res) => {
+  try {
+    const { siteName, logo, address, phone, whatsapp, email } = req.body;
+    
+    // Verificar se já existem configurações
+    let settings = await prisma.setting.findFirst();
+    
+    if (settings) {
+      // Atualizar configurações existentes
+      settings = await prisma.setting.update({
+        where: { id: settings.id },
+        data: {
+          siteName,
+          logo,
+          address,
+          phone,
+          whatsapp,
+          email
+        }
+      });
+    } else {
+      // Criar novas configurações
+      settings = await prisma.setting.create({
+        data: {
+          siteName,
+          logo,
+          address,
+          phone,
+          whatsapp,
+          email
+        }
+      });
+    }
+
+    res.json({
+      message: 'Configurações atualizadas com sucesso',
+      settings
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar configurações:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // Gerenciar posts do blog
 router.get('/blog', async (req, res) => {
   try {

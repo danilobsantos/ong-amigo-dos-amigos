@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -28,13 +28,26 @@ import AdminContacts from './pages/admin/Contacts';
 import AdminUsers from './pages/admin/Users';
 import AdminFinancialReports from './pages/admin/FinancialReports';
 import AdminSocialCastration from './pages/admin/SocialCastration';
+import Settings from './pages/admin/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
+
+// Componente para rolar para o topo em cada mudança de rota
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <div className="min-h-screen flex flex-col">
           <Routes>
             {/* Rotas públicas */}
@@ -83,6 +96,7 @@ function App() {
                   <Route path="/contatos" element={<AdminContacts />} />
                   <Route path="/prestacao-contas" element={<AdminFinancialReports />} />
                   <Route path="/castracao-social" element={<AdminSocialCastration />} />
+                  <Route path="/configuracoes" element={<Settings />} />
                 </Routes>
               </ProtectedRoute>
             } />
