@@ -144,6 +144,9 @@ npx prisma db push
 
 # Executar setup inicial
 node scripts/setup-database.js
+
+# Executar seed para popular todas as tabelas com dados iniciais
+npx prisma db seed
 ```
 
 #### Passo 4: Configurar Frontend
@@ -261,6 +264,22 @@ pnpm run dev
    - ✅ Fallback automático para PIX se falhar
 
 **⚠️ IMPORTANTE**: Se as chaves Stripe não estiverem configuradas, o sistema automaticamente sugere PIX como alternativa.
+
+### População Inicial de Dados com Seed
+
+O sistema inclui um script de seed que popula todas as tabelas com dados realistas para demonstração e desenvolvimento. Este script é executado automaticamente quando você usa o comando `npx prisma db seed`.
+
+**Dados populados pelo seed:**
+- **Usuário administrador**: Email: admin@amigodosamigos.org | Senha: admin123
+- **Configurações do site**: Nome, logo, endereço, contatos e redes sociais
+- **Estatísticas iniciais**: Cães resgatados, adotados, voluntários e valor total de doações
+- **Cães para adoção**: 5 cães com fotos, descrições e características completas
+- **Posts do blog**: 3 artigos sobre adoção, saúde e alimentação
+- **Relatórios financeiros**: 3 relatórios de exemplo para prestação de contas
+- **Voluntários**: 3 voluntários registrados com diferentes áreas de atuação
+- **Doações**: 3 doações registradas com diferentes métodos de pagamento
+- **Contatos**: 2 mensagens de contato recebidas
+- **Solicitações de castração social**: 2 solicitações aprovadas com documentos e fotos
 
 ### Configurar Email
 
@@ -584,6 +603,7 @@ imagemin backend/uploads/*.jpg --out-dir=backend/uploads/optimized
 - [ ] **Schema** aplicado (`npx prisma db push`)
 - [ ] **Setup inicial** executado (`node scripts/setup-database.js`)
 - [ ] **Tabela de configurações** criada corretamente
+- [ ] **Seed executado com sucesso** (`npx prisma db seed`)
 - [ ] Servidor backend iniciando sem erros
 
 ### 🎨 Configuração do Frontend

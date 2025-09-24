@@ -18,7 +18,11 @@ router.get('/', async (req, res) => {
           address: '',
           phone: '',
           whatsapp: '',
-          email: ''
+          email: '',
+          facebook: '',
+          instagram: '',
+          youtube: '',
+          tiktok: ''
         }
       });
     }
@@ -30,7 +34,11 @@ router.get('/', async (req, res) => {
       address: settings.address,
       phone: settings.phone,
       whatsapp: settings.whatsapp,
-      email: settings.email
+      email: settings.email,
+      facebook: settings.facebook,
+      instagram: settings.instagram,
+      youtube: settings.youtube,
+      tiktok: settings.tiktok
     };
 
     res.json({ settings: publicSettings });

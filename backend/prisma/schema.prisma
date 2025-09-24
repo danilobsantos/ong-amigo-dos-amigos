@@ -31,13 +31,10 @@ model Dog {
   vaccinated  Boolean  @default(false)
   neutered    Boolean  @default(false)
   available   Boolean  @default(true)
-  status      String   @default("available") // available, adopted, reserved
+  status      String   @default("available")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   animalType  String   @default("cachorro")
-
-  images    DogImage[]
-  adoptions Adoption[]
 
   @@map("dogs")
 }
@@ -46,7 +43,6 @@ model DogImage {
   id    Int    @id @default(autoincrement())
   url   String
   dogId Int
-  dog   Dog    @relation(fields: [dogId], references: [id], onDelete: Cascade)
 
   @@index([dogId], map: "DogImage_dogId_fkey")
 }
@@ -64,8 +60,6 @@ model Adoption {
   rejectionReason String?  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-
-  dog Dog @relation(fields: [dogId], references: [id])
 
   @@index([dogId], map: "adoptions_dogId_fkey")
   @@map("adoptions")
@@ -114,7 +108,7 @@ model Donation {
   donorName       String?
   donorEmail      String?
   recurring       Boolean   @default(false)
-  status          String    @default("pending") // pending, completed, failed, refunded
+  status          String    @default("pending")
   paidAt          DateTime?
   notes           String?   @db.Text
   createdAt       DateTime  @default(now())
@@ -151,11 +145,11 @@ model Stats {
 
 model FinancialReport {
   id         Int      @id @default(autoincrement())
-  period     String // e.g., "2025-01" ou "Janeiro 2025"
+  period     String
   fileName   String
   filePath   String
   fileSize   Int?
-  uploadedBy String? // Nome do admin que fez upload
+  uploadedBy String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -164,41 +158,37 @@ model FinancialReport {
 
 model SocialCastration {
   id                  Int      @id @default(autoincrement())
-  // Dados do Animal
   animalName          String
-  animalSize          String // pequeno, médio, grande
+  animalSize          String
   animalAge           String
-  animalGender        String // macho, fêmea
-  animalSpecies       String // cão, gato
+  animalGender        String
+  animalSpecies       String
   animalBreed         String?
   animalColor         String
   animalTemperament   String
-  dogRabiesVaccinated Boolean? // Para cães
-  dogV10Vaccinated    Boolean? // Para cães  
-  catV3V4V5Vaccinated Boolean? // Para gatos
-  catRabiesVaccinated Boolean? // Para gatos
-  animalPhoto         String? // URL da foto
-
-  // Dados do Tutor
-  tutorName         String
-  tutorBirthDate    DateTime
-  tutorRG           String
-  tutorCPF          String
-  tutorAddress      String
-  tutorNumber       String
-  tutorNeighborhood String
-  tutorPhone        String
-  householdSize     Int // Quantas pessoas moram
-  totalAnimals      Int // Quantos animais no total
-  hasChildren       Boolean
-  childrenCount     Int? // Se tem filhos, quantos
-  monthlyIncome     String // Renda mensal familiar
-  agreesLowIncome   Boolean // Concorda que é baixa renda
-
-  status          String   @default("pending") // pending, approved, rejected
-  rejectionReason String?  @db.Text
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  dogRabiesVaccinated Boolean?
+  dogV10Vaccinated    Boolean?
+  catV3V4V5Vaccinated Boolean?
+  catRabiesVaccinated Boolean?
+  animalPhoto         String?
+  tutorName           String
+  tutorBirthDate      DateTime
+  tutorRG             String
+  tutorCPF            String
+  tutorAddress        String
+  tutorNumber         String
+  tutorNeighborhood   String
+  tutorPhone          String
+  householdSize       Int
+  totalAnimals        Int
+  hasChildren         Boolean
+  childrenCount       Int?
+  monthlyIncome       String
+  agreesLowIncome     Boolean
+  status              String   @default("pending")
+  rejectionReason     String?  @db.Text
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   @@map("social_castrations")
 }
@@ -211,6 +201,10 @@ model Setting {
   phone     String?
   whatsapp  String?
   email     String?
+  facebook  String?
+  instagram String?
+  youtube   String?
+  tiktok    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

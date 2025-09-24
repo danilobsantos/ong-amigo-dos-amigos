@@ -17,7 +17,11 @@ const Settings = () => {
     address: '',
     phone: '',
     whatsapp: '',
-    email: ''
+    email: '',
+    facebook: '',
+    instagram: '',
+    youtube: '',
+    tiktok: ''
   });
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -29,7 +33,20 @@ const Settings = () => {
     try {
       setLoading(true);
       const response = await adminAPI.getSettings();
-      setSettings(response.data.settings);
+      // Garantir que todos os campos tenham valores padrão para evitar inputs não controlados
+      const settingsData = {
+        siteName: response.data.settings.siteName || '',
+        logo: response.data.settings.logo || '',
+        address: response.data.settings.address || '',
+        phone: response.data.settings.phone || '',
+        whatsapp: response.data.settings.whatsapp || '',
+        email: response.data.settings.email || '',
+        facebook: response.data.settings.facebook || '',
+        instagram: response.data.settings.instagram || '',
+        youtube: response.data.settings.youtube || '',
+        tiktok: response.data.settings.tiktok || ''
+      };
+      setSettings(settingsData);
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
       setMessage({ type: 'error', text: 'Falha ao carregar configurações' });
@@ -96,7 +113,19 @@ const Settings = () => {
       setMessage({ type: 'success', text: 'Configurações salvas com sucesso' });
       
       // Atualizar as configurações com os dados retornados do backend
-      setSettings(response.data.settings);
+      const updatedSettings = {
+        siteName: response.data.settings.siteName || '',
+        logo: response.data.settings.logo || '',
+        address: response.data.settings.address || '',
+        phone: response.data.settings.phone || '',
+        whatsapp: response.data.settings.whatsapp || '',
+        email: response.data.settings.email || '',
+        facebook: response.data.settings.facebook || '',
+        instagram: response.data.settings.instagram || '',
+        youtube: response.data.settings.youtube || '',
+        tiktok: response.data.settings.tiktok || ''
+      };
+      setSettings(updatedSettings);
       
       // Clear message after 3 seconds
       setTimeout(() => {
@@ -252,6 +281,59 @@ const Settings = () => {
                     onChange={handleInputChange}
                     placeholder="(00) 00000-0000"
                   />
+                </div>
+
+                {/* Redes Sociais */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Redes Sociais</h3>
+                  
+                  {/* Facebook */}
+                  <div className="space-y-2">
+                    <Label htmlFor="facebook">Facebook</Label>
+                    <Input
+                      id="facebook"
+                      name="facebook"
+                      value={settings.facebook}
+                      onChange={handleInputChange}
+                      placeholder="https://facebook.com/sua-pagina"
+                    />
+                  </div>
+
+                  {/* Instagram */}
+                  <div className="space-y-2">
+                    <Label htmlFor="instagram">Instagram</Label>
+                    <Input
+                      id="instagram"
+                      name="instagram"
+                      value={settings.instagram}
+                      onChange={handleInputChange}
+                      placeholder="https://instagram.com/seu-perfil"
+                    />
+                  </div>
+
+                  {/* YouTube */}
+                  <div className="space-y-2">
+                    <Label htmlFor="youtube">YouTube</Label>
+                    <Input
+                      id="youtube"
+                      name="youtube"
+                      value={settings.youtube}
+                      onChange={handleInputChange}
+                      placeholder="https://youtube.com/@seu-canal"
+                    />
+                  </div>
+
+                  {/* TikTok */}
+                  <div className="space-y-2">
+                    <Label htmlFor="tiktok">TikTok</Label>
+                    <Input
+                      id="tiktok"
+                      name="tiktok"
+                      value={settings.tiktok}
+                      onChange={handleInputChange}
+                      placeholder="https://tiktok.com/@seu-perfil"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

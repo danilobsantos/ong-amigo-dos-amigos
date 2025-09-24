@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE `settings`
+ADD COLUMN `facebook` VARCHAR(191) NULL,
+ADD COLUMN `instagram` VARCHAR(191) NULL,
+ADD COLUMN `youtube` VARCHAR(191) NULL,
+ADD COLUMN `tiktok` VARCHAR(191) NULL;

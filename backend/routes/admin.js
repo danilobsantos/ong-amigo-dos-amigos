@@ -72,7 +72,11 @@ router.get('/settings', async (req, res) => {
           address: '',
           phone: '',
           whatsapp: '',
-          email: ''
+          email: '',
+          facebook: '',
+          instagram: '',
+          youtube: '',
+          tiktok: ''
         }
       });
     }
@@ -86,7 +90,7 @@ router.get('/settings', async (req, res) => {
 
 router.put('/settings', async (req, res) => {
   try {
-    const { siteName, logo, address, phone, whatsapp, email } = req.body;
+    const { siteName, logo, address, phone, whatsapp, email, facebook, instagram, youtube, tiktok } = req.body;
     
     // Verificar se já existem configurações
     let settings = await prisma.setting.findFirst();
@@ -101,7 +105,11 @@ router.put('/settings', async (req, res) => {
           address,
           phone,
           whatsapp,
-          email
+          email,
+          facebook,
+          instagram,
+          youtube,
+          tiktok
         }
       });
     } else {
@@ -113,7 +121,11 @@ router.put('/settings', async (req, res) => {
           address,
           phone,
           whatsapp,
-          email
+          email,
+          facebook,
+          instagram,
+          youtube,
+          tiktok
         }
       });
     }
@@ -297,10 +309,20 @@ router.get('/volunteers', async (req, res) => {
       prisma.volunteer.count({ where })
     ]);
 
-    const volunteersWithAreas = volunteers.map(volunteer => ({
-      ...volunteer,
-      areas: JSON.parse(volunteer.areas || '[]')
-    }));
+    const volunteersWithAreas = volunteers.map(volunteer => {
+      try {
+        return {
+          ...volunteer,
+          areas: volunteer.areas ? JSON.parse(volunteer.areas) : []
+        };
+      } catch (error) {
+        console.error('Erro ao fazer parse das áreas do voluntário:', error);
+        return {
+          ...volunteer,
+          areas: []
+        };
+      }
+    });
 
     res.json({
       volunteers: volunteersWithAreas,
