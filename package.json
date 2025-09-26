@@ -1,0 +1,95 @@
+{
+  "name": "ong-amigo-dos-amigos",
+  "version": "1.0.0",
+  "description": "Site institucional e de arrecadação da ONG Amigo dos Amigos - Resgatando e cuidando de cães abandonados",
+  "main": "backend/server.js",
+  "scripts": {
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend/ong-frontend && pnpm install",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "build:frontend": "cd frontend/ong-frontend && pnpm run build",
+    "build:backend": "cd backend && npm run build",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend/ong-frontend && pnpm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend/ong-frontend && pnpm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend/ong-frontend && pnpm test",
+    "test": "npm run test:backend && npm run test:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend/ong-frontend && pnpm run lint",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "setup": "./deploy.sh development",
+    "deploy": "./deploy.sh production",
+    "db:setup": "cd backend && node scripts/setup-database.js",
+    "db:migrate": "cd backend && npx prisma db push",
+    "db:studio": "cd backend && npx prisma studio",
+    "seo:generate": "cd backend && curl -X POST http://localhost:3001/api/seo/generate-all",
+    "clean": "rm -rf backend/node_modules frontend/ong-frontend/node_modules backend/dist frontend/ong-frontend/dist",
+    "postinstall": "npm run install:all"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danilobsantos/ong-amigo-dos-amigos.git"
+  },
+  "keywords": [
+    "ong",
+    "animais",
+    "cães",
+    "adoção",
+    "doação",
+    "voluntariado",
+    "react",
+    "nodejs",
+    "express",
+    "mysql",
+    "prisma",
+    "stripe",
+    "pix",
+    "whatsapp",
+    "responsivo",
+    "seo",
+    "performance"
+  ],
+  "author": {
+    "name": "ONG Amigo dos Amigos",
+    "email": "contato@ongamigodosamigos.com.br",
+    "url": "https://ongamigodosamigos.com.br"
+  },
+  "contributors": [
+    {
+      "name": "Danilo Santos",
+      "email": "danilo@devstudio.com.br",
+      "url": "https://devstudio.com.br"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/danilobsantos/ong-amigo-dos-amigos/issues"
+  },
+  "homepage": "https://ongamigodosamigos.com.br",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "funding": {
+    "type": "donation",
+    "url": "https://ongamigodosamigos.com.br/doacoes"
+  },
+  "config": {
+    "directories": {
+      "backend": "./backend",
+      "frontend": "./frontend/ong-frontend",
+      "docs": "./docs",
+      "assets": "./assets"
+    }
+  },
+  "workspaces": [
+    "backend",
+    "frontend/ong-frontend"
+  ]
+}
