@@ -8,28 +8,29 @@ import OptimizedImage, { ImageGallery } from '@/components/OptimizedImage';
 const About = () => {
   const team = [
     {
-      name: 'Maria Silva',
-      role: 'Fundadora e Presidente',
-      image: '/api/placeholder/200/200',
-      description: 'Veterinária com 15 anos de experiência, dedicada ao bem-estar animal.'
+      name: 'Jéssica Rodrigues',
+      role: 'Presidente',
+      image: '/images/jessica.jpg',
+      description: 'Ativa na ONG desde Junho de 2016, agora com o cargo de presidente'
     },
     {
-      name: 'João Santos',
-      role: 'Coordenador de Resgates',
-      image: '/api/placeholder/200/200',
-      description: 'Especialista em resgates de emergência e primeiros socorros.'
+      name: 'Rafael Moreira',
+      role: 'Vice-Presidente',
+      image: '/images/Rafael.jpeg',
+      description: 'Na ONG desde Outubro de 2021, auxilia nas demandas administrativas'
     },
+    
     {
-      name: 'Ana Costa',
-      role: 'Responsável por Adoções',
-      image: '/api/placeholder/200/200',
-      description: 'Psicóloga especializada em comportamento animal e adoção responsável.'
-    },
-    {
-      name: 'Carlos Oliveira',
+      name: 'Otávio Lopes',
       role: 'Tesoureiro',
-      image: '/api/placeholder/200/200',
-      description: 'Contador responsável pela transparência financeira da ONG.'
+      image: '/images/otavio.jpeg',
+      description: 'Responsável pela transparência financeira da ONG, voluntário desde Fevereiro de 2021.'
+    },
+    {
+      name: 'Vivian Boturi',
+      role: 'Fundadora',
+      image: '/images/vivian.jpg',
+      description: 'Esse projeto só acontece pela sua dedicação em vida.'
     }
   ];
 
