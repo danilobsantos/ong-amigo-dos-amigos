@@ -31,7 +31,10 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken');
-      window.location.href = '/admin/login';
+      // Só redireciona para login se estivermos numa rota administrativa
+      if (window.location.pathname.startsWith('/admin') && !window.location.pathname.includes('/admin/login')) {
+        window.location.href = '/admin/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -115,6 +118,13 @@ export const authAPI = {
 // Admin
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
+  getSettings: () => api.get('/admin/settings'),
+  updateSettings: (data) => api.put('/admin/settings', data),
+};
+
+// Settings públicas
+export const settingsAPI = {
+  getPublicSettings: () => api.get('/settings'),
 };
 
 // Users (admin)
@@ -143,6 +153,9 @@ export const financialReportsAPI = {
 // Uploads
 export const uploadsAPI = {
   uploadImages: (formData) => api.post('/uploads', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  uploadLogo: (formData) => api.post('/uploads/logo', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
 };

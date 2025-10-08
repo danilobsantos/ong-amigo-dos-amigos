@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Heart, Clock, MapPin, Phone, Mail, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
-import { volunteersAPI } from '../lib/api';
+import { volunteersAPI, settingsAPI } from '../lib/api';
 
 const Volunteer = () => {
   const [submitting, setSubmitting] = useState(false);
@@ -16,8 +16,22 @@ const Volunteer = () => {
   const [selectedAreas, setSelectedAreas] = useState([]);
   const [phoneValue, setPhoneValue] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [settings, setSettings] = useState(null);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const response = await settingsAPI.getPublicSettings();
+      setSettings(response.data.settings);
+    } catch (error) {
+      console.error('Erro ao carregar configurações:', error);
+    }
+  };
 
   const volunteerAreas = [
     { id: 'resgate', label: 'Resgate de Animais', description: 'Participar de resgates de emergência' },
@@ -347,17 +361,16 @@ const Volunteer = () => {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-3">
                   <Phone className="w-4 h-4 text-primary" />
-                  <span className="text-sm">(11) 99999-9999</span>
+                  <span className="text-sm">{settings?.phone || '(11) 99999-9999'}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="w-4 h-4 text-primary" />
-                  <span className="text-sm">voluntarios@amigodosamigos.org</span>
+                  <span className="text-sm">{settings?.email || 'voluntarios@amigodosamigos.org'}</span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-4 h-4 text-primary mt-1" />
-                  <span className="text-sm">
-                    Rua das Flores, 123<br />
-                    Centro, São Paulo - SP
+                  <MapPin className="w-6 h-6 text-primary" />
+                  <span className="text-sm whitespace-pre-line">
+                    {settings?.address || 'Rua das Flores, 123\nCentro, São Paulo - SP'}
                   </span>
                 </div>
               </CardContent>

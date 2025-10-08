@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useForm } from 'react-hook-form';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../lib/authContext';
 
 const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -36,6 +36,7 @@ const AdminLogin = () => {
         setLoginError(result.error);
       }
     } catch (error) {
+      console.error('Erro no login:', error);
       setLoginError('Erro interno. Tente novamente.');
     } finally {
       setIsLoading(false);

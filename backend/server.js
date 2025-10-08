@@ -30,6 +30,7 @@ app.use('/uploads', (req, res, next) => {
 }, express.static(path.join(__dirname, 'uploads')));
 
 // Rotas da API
+app.use('/api/settings', require('./routes/settings')); // Configurações públicas
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin')); // Admin deve vir antes para evitar conflitos
 app.use('/api/dogs', require('./routes/dogs'));

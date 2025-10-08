@@ -1,9 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Mail, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
 import { Youtube } from 'lucide-react';
+import { settingsAPI } from '../lib/api';
 
 const Footer = () => {
+  const [settings, setSettings] = useState(null);
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const response = await settingsAPI.getPublicSettings();
+      setSettings(response.data.settings);
+    } catch (error) {
+      console.error('Erro ao carregar configurações no footer:', error);
+    }
+  };
+
   return (
     <footer className="bg-gray-900 text-white">
       <div className="container-max section-padding">
@@ -88,21 +104,23 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Contato</h4>
             <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-                <span className="text-gray-300 text-sm">
-                  Rua Paschoal Romanelli, 486<br />
-                  Várzea , Guaranésia/MG<br />
-                  CEP: 37810-000
+              <div className="flex items-start space-x-3">
+                <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                <span className="text-gray-300 text-sm whitespace-pre-line">
+                  {settings?.address || 'Rua Paschoal Romanelli, 486\nVárzea , Guaranésia/MG\nCEP: 37810-000'}
                 </span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-4 h-4 text-primary flex-shrink-0" />
-                <span className="text-gray-300 text-sm">(35) 9821-5366</span>
+                <span className="text-gray-300 text-sm">
+                  {settings?.phone || '(35) 9821-5366'}
+                </span>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="w-4 h-4 text-primary flex-shrink-0" />
-                <span className="text-gray-300 text-sm">ongamigodosamigos@gmail.com</span>
+                <span className="text-gray-300 text-sm">
+                  {settings?.email || 'ongamigodosamigos@gmail.com'}
+                </span>
               </div>
             </div>
           </div>

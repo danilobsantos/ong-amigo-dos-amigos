@@ -35,6 +35,24 @@ async function setupDatabase() {
       console.log('ℹ️  Usuário administrador já existe');
     }
 
+    // Criar configurações iniciais
+    const existingSettings = await prisma.setting.findFirst();
+    if (!existingSettings) {
+      await prisma.setting.create({
+        data: {
+          siteName: 'ONG Amigo dos Amigos',
+          logo: '',
+          address: '',
+          phone: '',
+          whatsapp: '',
+          email: ''
+        }
+      });
+      console.log('⚙️  Configurações iniciais criadas');
+    } else {
+      console.log('ℹ️  Configurações já existem');
+    }
+
     // Criar dados de exemplo para desenvolvimento
     if (process.env.NODE_ENV === 'development') {
       await createSampleData();

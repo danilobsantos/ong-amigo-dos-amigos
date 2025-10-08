@@ -34,6 +34,7 @@ const About = () => {
     }
   ];
 
+
   const values = [
     {
       icon: Heart,

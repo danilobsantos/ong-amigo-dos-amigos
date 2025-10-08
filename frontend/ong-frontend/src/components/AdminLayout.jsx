@@ -14,10 +14,11 @@ import {
   LogOut,
   Home,
   Receipt,
-  Scissors
+  Scissors,
+  Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../lib/authContext';
 
 const AdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -35,6 +36,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Prestação de Contas', href: '/admin/prestacao-contas', icon: Receipt },
     { name: 'Castração Social', href: '/admin/castracao-social', icon: Scissors },
     { name: 'Contatos', href: '/admin/contatos', icon: MessageSquare },
+    { name: 'Configurações', href: '/admin/configuracoes', icon: Settings },
     { name: 'Usuários', href: '/admin/usuarios', icon: Users },
   ];
 
