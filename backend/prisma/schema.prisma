@@ -36,6 +36,10 @@ model Dog {
   updatedAt   DateTime @updatedAt
   animalType  String   @default("cachorro")
 
+  // Relações
+  images    DogImage[]
+  adoptions Adoption[]
+
   @@map("dogs")
 }
 
@@ -44,7 +48,11 @@ model DogImage {
   url   String
   dogId Int
 
+  // Relação com Dog (chave estrangeira)
+  dog Dog @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
   @@index([dogId], map: "DogImage_dogId_fkey")
+  @@map("dog_images")
 }
 
 model Adoption {
@@ -60,6 +68,9 @@ model Adoption {
   rejectionReason String?  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  // Relação com Dog
+  dog Dog @relation(fields: [dogId], references: [id])
 
   @@index([dogId], map: "adoptions_dogId_fkey")
   @@map("adoptions")

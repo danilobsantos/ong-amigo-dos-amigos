@@ -35,34 +35,27 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Este cão não está mais disponível para adoção' });
     }
 
-    const adoption = await prisma.adoption.create({
-      data: value,
-      include: {
-        dog: {
-          select: {
-            name: true,
-            images: true
-          }
-        }
-      }
+    // Cria a adoção sem include
+    const createdAdoption = await prisma.adoption.create({
+      data: value
+    });
+
+    // Busca o dog e suas imagens separadamente
+    const dogData = await prisma.dog.findUnique({
+      where: { id: createdAdoption.dogId }
+    });
+    const images = await prisma.dogImage.findMany({
+      where: { dogId: createdAdoption.dogId }
     });
 
     res.status(201).json({
       message: 'Solicitação de adoção enviada com sucesso',
       adoption: {
-        ...adoption,
-        dog: {
-          ...adoption.dog,
-          images: Array.isArray(adoption.dog.images)
-            ? adoption.dog.images.map(img => (img && img.url ? img.url : String(img)))
-            : (() => {
-                try {
-                  return JSON.parse(adoption.dog.images || '[]');
-                } catch (e) {
-                  return [];
-                }
-              })()
-        }
+        ...createdAdoption,
+        dog: dogData ? {
+          ...dogData,
+          images: images.map(img => img.url)
+        } : null
       }
     });
   } catch (error) {
@@ -86,37 +79,30 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
         where,
         skip,
         take: parseInt(limit),
-        orderBy: { createdAt: 'desc' },
-        include: {
-          dog: {
-            select: {
-              name: true,
-              images: true
-            }
-          }
-        }
+        orderBy: { createdAt: 'desc' }
       }),
       prisma.adoption.count({ where })
     ]);
 
-    const adoptionsWithImages = adoptions.map(adoption => ({
-      ...adoption,
-      dog: {
-        ...adoption.dog,
-        images: Array.isArray(adoption.dog.images)
-          ? adoption.dog.images.map(img => (img && img.url ? img.url : String(img)))
-          : (() => {
-              try {
-                return JSON.parse(adoption.dog.images || '[]');
-              } catch (e) {
-                return [];
-              }
-            })()
-      }
+    // Para cada adoção, buscar dog e imagens
+    const adoptionsWithDog = await Promise.all(adoptions.map(async (adoption) => {
+      const dogData = await prisma.dog.findUnique({
+        where: { id: adoption.dogId }
+      });
+      const images = await prisma.dogImage.findMany({
+        where: { dogId: adoption.dogId }
+      });
+      return {
+        ...adoption,
+        dog: dogData ? {
+          ...dogData,
+          images: images.map(img => img.url)
+        } : null
+      };
     }));
 
     res.json({
-      adoptions: adoptionsWithImages,
+      adoptions: adoptionsWithDog,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -178,24 +164,22 @@ router.patch('/:id/status', authenticateToken, requireAdmin, async (req, res) =>
       console.warn('Erro ao atualizar status do cão após mudança de status da adoção:', e.message);
     }
 
-    // Re-fetch adoption with updated dog (and its images)
+    // Buscar adoção, dog e imagens separadamente
     const adoptionFull = await prisma.adoption.findUnique({
-      where: { id: adoption.id },
-      include: {
-        dog: {
-          include: { images: true }
-        }
-      }
+      where: { id: adoption.id }
     });
+    const dogData = adoptionFull ? await prisma.dog.findUnique({
+      where: { id: adoptionFull.dogId }
+    }) : null;
+    const images = dogData ? await prisma.dogImage.findMany({
+      where: { dogId: dogData.id }
+    }) : [];
 
-    // Normalize dog images for response
     const adoptionWithImages = {
       ...adoptionFull,
-      dog: adoptionFull.dog ? {
-        ...adoptionFull.dog,
-        images: Array.isArray(adoptionFull.dog.images)
-          ? adoptionFull.dog.images.map(img => (img && img.url ? img.url : String(img)))
-          : (() => { try { return JSON.parse(adoptionFull.dog.images || '[]'); } catch (e) { return []; } })()
+      dog: dogData ? {
+        ...dogData,
+        images: images.map(img => img.url)
       } : null
     };
 

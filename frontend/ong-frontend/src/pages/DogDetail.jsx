@@ -369,7 +369,7 @@ const DogDetail = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="experience">Experiência com Animais *</Label>
+                  <Label htmlFor="experience">Experiência com animais *</Label>
                   <Textarea
                     id="experience"
                     {...register('experience', { required: 'Este campo é obrigatório' })}
