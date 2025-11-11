@@ -27,6 +27,6 @@ ENV UPLOAD_PATH=/app/uploads
 # Cria diretório de uploads com permissão
 RUN mkdir -p ${UPLOAD_PATH} && chmod -R 755 ${UPLOAD_PATH}
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["node", "server.js"]
