@@ -13,8 +13,12 @@ app.use(helmet());
 app.use(morgan('combined'));
 
 // CORS
+const allowed = [process.env.FRONTEND_URL, "http://localhost:5173"];
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, cb) => {
+    if (!origin || allowed.includes(origin)) return cb(null, true);
+    return cb(new Error("Not allowed by CORS"));
+  },
   credentials: true
 }));
 
