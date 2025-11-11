@@ -18,23 +18,10 @@ import {
 } from '@/components/ui/dialog';
 import { useForm, Controller } from 'react-hook-form';
 import { Checkbox } from '@/components/ui/checkbox';
+import { normalizeImageUrl } from '@/lib/images';
 
 const AdminDogs = () => {
-  // derive backend origin from VITE_API_URL (which includes /api) or fallback
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-  const BACKEND_ORIGIN = API_BASE.replace(/\/api\/?$/,'');
-
-  const normalizeImageUrl = (url) => {
-    if (!url) return '/api/placeholder/64/64';
-    if (/^https?:\/\//.test(url)) return url;
-    // If the path is under /uploads, it's served by backend
-    if (url.startsWith('/uploads/')) return `${BACKEND_ORIGIN}${url}`;
-    // If the path is under /images, assume it's a frontend static asset
-    if (url.startsWith('/images/')) return `${window.location.origin}${url}`;
-    // otherwise default to backend origin
-    if (url.startsWith('/')) return `${BACKEND_ORIGIN}${url}`;
-    return url;
-  };
+  // Normalização de imagens centralizada
   const [dogs, setDogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -337,7 +324,7 @@ const AdminDogs = () => {
                 {dogs.map((dog) => (
                   <div key={dog.id} className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-gray-50">
                     <img
-                      src={normalizeImageUrl(dog.images?.[0])}
+                      src={normalizeImageUrl(dog.images?.[0]) || '/api/placeholder/64/64'}
                       alt={dog.name}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
@@ -802,7 +789,7 @@ const AdminDogs = () => {
                     <div className="lg:w-50 w-full flex-shrink-0">
                       <div className="relative">
                         <img
-                          src={normalizeImageUrl(selectedDog?.images?.[0])}
+                          src={normalizeImageUrl(selectedDog?.images?.[0]) || '/api/placeholder/64/64'}
                           alt={selectedDog?.name}
                           className="w-full h-50 object-cover rounded-lg border shadow-sm"
                         />

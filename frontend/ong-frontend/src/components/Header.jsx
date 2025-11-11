@@ -6,6 +6,7 @@ import { MessageCircleCodeIcon } from 'lucide-react';
 import { MessageCircleHeartIcon } from 'lucide-react';
 import { MessageCircleIcon } from 'lucide-react';
 import { SettingsContext } from '../lib/settingsContext';
+import { normalizeImageUrl } from '@/lib/images';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -32,7 +33,7 @@ const Header = () => {
           <Link to="/" className="flex items-center">
             {settings?.logo ? (
               <img 
-                src={settings.logo} 
+                src={normalizeImageUrl(settings.logo) || '/images/logo.png'} 
                 alt={settings.siteName} 
                 className="h-20 w-auto object-contain" 
               />

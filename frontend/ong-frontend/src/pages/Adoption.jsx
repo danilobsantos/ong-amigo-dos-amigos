@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { dogsAPI } from '../lib/api';
+import { normalizeImageUrl } from '@/lib/images';
 
 const Adoption = () => {
   const [dogs, setDogs] = useState([]);
@@ -180,7 +181,7 @@ const Adoption = () => {
                   <CardContent className="p-0">
                     <div className="relative">
                       <img
-                        src={dog.images?.[0] || '/api/placeholder/400/300'}
+                        src={normalizeImageUrl(dog.images?.[0]) || '/api/placeholder/400/300'}
                         alt={dog.name}
                         className="w-full h-48 object-cover"
                       />

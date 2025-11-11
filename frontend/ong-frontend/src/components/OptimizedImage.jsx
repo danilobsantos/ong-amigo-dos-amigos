@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import LazyLoad from 'react-lazyload';
+import { normalizeImageUrl } from '@/lib/images';
 
 const OptimizedImage = ({
   src,
@@ -27,9 +28,10 @@ const OptimizedImage = ({
       return '';
     }
 
+    const normalized = normalizeImageUrl(baseSrc);
     const sizes = [320, 640, 768, 1024, 1280, 1920];
     return sizes
-      .map(size => `${baseSrc}?w=${size}&q=${quality} ${size}w`)
+      .map(size => `${normalized}?w=${size}&q=${quality} ${size}w`)
       .join(', ');
   };
 
@@ -63,9 +65,10 @@ const OptimizedImage = ({
     if (!src || hasError) return;
 
     const img = new Image();
+    const normalized = normalizeImageUrl(src);
     
     img.onload = () => {
-      setCurrentSrc(src);
+      setCurrentSrc(normalized);
       setIsLoaded(true);
       if (onLoad) onLoad();
     };
@@ -76,7 +79,7 @@ const OptimizedImage = ({
       if (onError) onError();
     };
     
-    img.src = src;
+    img.src = normalized || placeholder;
   };
 
   const handleImageLoad = () => {

@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
 import { dogsAPI, adoptionsAPI } from '../lib/api';
+import { normalizeImageUrl } from '@/lib/images';
 
 const DogDetail = () => {
   const { id } = useParams();
@@ -111,7 +112,9 @@ const DogDetail = () => {
     );
   }
 
-  const images = dog.images || ['/api/placeholder/600/400'];
+  const images = (Array.isArray(dog.images) && dog.images.length > 0)
+    ? dog.images.map((u) => normalizeImageUrl(u)).filter(Boolean)
+    : ['/api/placeholder/600/400'];
 
   return (
     <div className="min-h-screen bg-gray-50">
