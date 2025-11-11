@@ -1,0 +1,362 @@
+{
+  "__export_format": 4,
+  "__export_date": "2025-11-11T00:00:00.000Z",
+  "__export_source": "trae.insomnia.generator:v1",
+  "resources": [
+    {
+      "_id": "wrk_ong_amigo_dos_amigos",
+      "type": "workspace",
+      "name": "ONG Amigo dos Amigos API",
+      "parentId": null
+    },
+    {
+      "_id": "env_base",
+      "type": "environment",
+      "parentId": "wrk_ong_amigo_dos_amigos",
+      "name": "Base Environment",
+      "data": {}
+    },
+    {
+      "_id": "env_dev",
+      "type": "environment",
+      "parentId": "env_base",
+      "name": "Desenvolvimento",
+      "data": {
+        "base_url": "http://localhost:3001",
+        "admin_email": "admin@exemplo.com",
+        "admin_password": "senha123",
+        "dog_id": 1,
+        "blog_slug": "exemplo-de-post",
+        "user_id": 1,
+        "adoption_id": 1,
+        "financial_report_id": 1
+      }
+    },
+
+    { "_id": "fld_auth", "type": "request_group", "name": "Auth", "parentId": "wrk_ong_amigo_dos_amigos" },
+    { "_id": "fld_public", "type": "request_group", "name": "Public", "parentId": "wrk_ong_amigo_dos_amigos" },
+    { "_id": "fld_uploads", "type": "request_group", "name": "Uploads", "parentId": "wrk_ong_amigo_dos_amigos" },
+    { "_id": "fld_donations", "type": "request_group", "name": "Donations", "parentId": "wrk_ong_amigo_dos_amigos" },
+    { "_id": "fld_payments", "type": "request_group", "name": "Payments", "parentId": "wrk_ong_amigo_dos_amigos" },
+    { "_id": "fld_admin", "type": "request_group", "name": "Admin", "parentId": "wrk_ong_amigo_dos_amigos" },
+
+    {
+      "_id": "req_auth_login",
+      "type": "request",
+      "parentId": "fld_auth",
+      "name": "Auth - Login",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/login",
+      "body": { "mimeType": "application/json", "text": "{\n  \"email\": \"{{ _.admin_email }}\",\n  \"password\": \"{{ _.admin_password }}\"\n}" },
+      "headers": [ { "name": "Content-Type", "value": "application/json" } ]
+    },
+    {
+      "_id": "req_auth_verify",
+      "type": "request",
+      "parentId": "fld_auth",
+      "name": "Auth - Verify",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/auth/verify",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" }
+    },
+
+    {
+      "_id": "req_public_health",
+      "type": "request",
+      "parentId": "fld_public",
+      "name": "Health",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/health"
+    },
+    {
+      "_id": "req_public_dogs_list",
+      "type": "request",
+      "parentId": "fld_public",
+      "name": "Dogs - List",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/dogs",
+      "parameters": [
+        { "name": "page", "value": "1" },
+        { "name": "limit", "value": "12" }
+      ]
+    },
+    {
+      "_id": "req_public_dog_by_id",
+      "type": "request",
+      "parentId": "fld_public",
+      "name": "Dogs - By Id",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/dogs/{{ _.dog_id }}"
+    },
+    {
+      "_id": "req_public_blog_list",
+      "type": "request",
+      "parentId": "fld_public",
+      "name": "Blog - List",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/blog",
+      "parameters": [ { "name": "page", "value": "1" }, { "name": "limit", "value": "10" } ]
+    },
+    {
+      "_id": "req_public_blog_by_slug",
+      "type": "request",
+      "parentId": "fld_public",
+      "name": "Blog - By Slug",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/blog/{{ _.blog_slug }}"
+    },
+    {
+      "_id": "req_public_stats",
+      "type": "request",
+      "parentId": "fld_public",
+      "name": "Stats",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/stats"
+    },
+    {
+      "_id": "req_public_contact",
+      "type": "request",
+      "parentId": "fld_public",
+      "name": "Contact",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/contacts",
+      "body": { "mimeType": "application/json", "text": "{\n  \"name\": \"Fulano\",\n  \"email\": \"fulano@ex.com\",\n  \"subject\": \"Ajuda\",\n  \"message\": \"Quero contribuir.\"\n}" },
+      "headers": [ { "name": "Content-Type", "value": "application/json" } ]
+    },
+
+    {
+      "_id": "req_uploads_images",
+      "type": "request",
+      "parentId": "fld_uploads",
+      "name": "Uploads - Images (multipart)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/uploads",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "images", "type": "file", "fileName": "", "disabled": false }
+        ]
+      }
+    },
+
+    {
+      "_id": "req_donations_pix",
+      "type": "request",
+      "parentId": "fld_donations",
+      "name": "Donations - PIX",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/donations/pix",
+      "body": { "mimeType": "application/json", "text": "{\n  \"amount\": 25,\n  \"donorName\": \"Fulano\",\n  \"donorEmail\": \"fulano@ex.com\",\n  \"recurring\": false\n}" },
+      "headers": [ { "name": "Content-Type", "value": "application/json" } ]
+    },
+    {
+      "_id": "req_donations_stripe_create",
+      "type": "request",
+      "parentId": "fld_donations",
+      "name": "Donations - Stripe Create",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/donations/stripe",
+      "body": { "mimeType": "application/json", "text": "{\n  \"amount\": 50,\n  \"donorName\": \"Fulano\",\n  \"donorEmail\": \"fulano@ex.com\",\n  \"recurring\": false\n}" },
+      "headers": [ { "name": "Content-Type", "value": "application/json" } ]
+    },
+    {
+      "_id": "req_donations_stripe_status",
+      "type": "request",
+      "parentId": "fld_donations",
+      "name": "Donations - Stripe Status",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/donations/stripe/status/{{ response 'Donations - Stripe Create', 'body', 'jsonPath' '$.sessionId' }}"
+    },
+
+    {
+      "_id": "req_payments_pix_generate_qr",
+      "type": "request",
+      "parentId": "fld_payments",
+      "name": "Payments - PIX Generate QR",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/payments/pix/generate-qr",
+      "body": { "mimeType": "application/json", "text": "{\n  \"amount\": 25,\n  \"description\": \"Doação\",\n  \"donorName\": \"Fulano\",\n  \"donorEmail\": \"fulano@ex.com\"\n}" },
+      "headers": [ { "name": "Content-Type", "value": "application/json" } ]
+    },
+    {
+      "_id": "req_payments_pix_status",
+      "type": "request",
+      "parentId": "fld_payments",
+      "name": "Payments - PIX Status",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/payments/pix/status/{{ response 'Payments - PIX Generate QR', 'body', 'jsonPath' '$.txId' }}"
+    },
+    {
+      "_id": "req_payments_pix_confirm",
+      "type": "request",
+      "parentId": "fld_payments",
+      "name": "Payments - PIX Confirm (dev)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/payments/pix/confirm/{{ response 'Payments - PIX Generate QR', 'body', 'jsonPath' '$.txId' }}"
+    },
+    {
+      "_id": "req_payments_methods",
+      "type": "request",
+      "parentId": "fld_payments",
+      "name": "Payments - Methods",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/payments/methods"
+    },
+    {
+      "_id": "req_payments_stats",
+      "type": "request",
+      "parentId": "fld_payments",
+      "name": "Payments - Stats",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/payments/stats"
+    },
+
+    {
+      "_id": "req_admin_dashboard",
+      "type": "request",
+      "parentId": "fld_admin",
+      "name": "Admin - Dashboard",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/admin/dashboard",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" }
+    },
+    {
+      "_id": "req_admin_users_list",
+      "type": "request",
+      "parentId": "fld_admin",
+      "name": "Admin - Users List",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/users",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" }
+    },
+    {
+      "_id": "req_admin_users_create",
+      "type": "request",
+      "parentId": "fld_admin",
+      "name": "Admin - Users Create",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/users",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" },
+      "body": { "mimeType": "application/json", "text": "{\n  \"name\": \"Admin 2\",\n  \"email\": \"admin2@ex.com\",\n  \"password\": \"senha123\",\n  \"role\": \"admin\"\n}" },
+      "headers": [ { "name": "Content-Type", "value": "application/json" } ]
+    },
+    {
+      "_id": "req_admin_users_update",
+      "type": "request",
+      "parentId": "fld_admin",
+      "name": "Admin - Users Update",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/users/{{ _.user_id }}",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" },
+      "body": { "mimeType": "application/json", "text": "{\n  \"name\": \"Admin Atualizado\"\n}" },
+      "headers": [ { "name": "Content-Type", "value": "application/json" } ]
+    },
+    {
+      "_id": "req_admin_users_delete",
+      "type": "request",
+      "parentId": "fld_admin",
+      "name": "Admin - Users Delete",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/users/{{ _.user_id }}",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" }
+    },
+
+    {
+      "_id": "req_admin_dogs_create",
+      "type": "request",
+      "parentId": "fld_admin",
+      "name": "Admin - Dogs Create",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/dogs",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" },
+      "body": { "mimeType": "application/json", "text": "{\n  \"name\": \"Rex\",\n  \"age\": \"2 anos\",\n  \"size\": \"médio\",\n  \"gender\": \"macho\",\n  \"breed\": \"SRD\",\n  \"animalType\": \"cachorro\",\n  \"description\": \"Brincalhão e dócil.\",\n  \"temperament\": \"Sociável\",\n  \"vaccinated\": true,\n  \"neutered\": true,\n  \"available\": true,\n  \"images\": []\n}" },
+      "headers": [ { "name": "Content-Type", "value": "application/json" } ]
+    },
+    {
+      "_id": "req_admin_dogs_update",
+      "type": "request",
+      "parentId": "fld_admin",
+      "name": "Admin - Dogs Update",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/dogs/{{ _.dog_id }}",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" },
+      "body": { "mimeType": "application/json", "text": "{\n  \"name\": \"Rex Atualizado\",\n  \"age\": \"2 anos\",\n  \"size\": \"médio\",\n  \"gender\": \"macho\",\n  \"animalType\": \"cachorro\",\n  \"description\": \"Muito brincalhão.\",\n  \"temperament\": \"Sociável\",\n  \"available\": true,\n  \"images\": []\n}" },
+      "headers": [ { "name": "Content-Type", "value": "application/json" } ]
+    },
+    {
+      "_id": "req_admin_dogs_delete",
+      "type": "request",
+      "parentId": "fld_admin",
+      "name": "Admin - Dogs Delete",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/dogs/{{ _.dog_id }}",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" }
+    },
+
+    {
+      "_id": "req_admin_adoptions_list",
+      "type": "request",
+      "parentId": "fld_admin",
+      "name": "Admin - Adoptions List",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/adoptions",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" },
+      "parameters": [ { "name": "page", "value": "1" }, { "name": "limit", "value": "20" } ]
+    },
+    {
+      "_id": "req_admin_adoptions_patch_status",
+      "type": "request",
+      "parentId": "fld_admin",
+      "name": "Admin - Adoptions Patch Status",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/api/adoptions/{{ _.adoption_id }}/status",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" },
+      "body": { "mimeType": "application/json", "text": "{\n  \"status\": \"approved\"\n}" },
+      "headers": [ { "name": "Content-Type", "value": "application/json" } ]
+    },
+
+    {
+      "_id": "req_admin_financial_reports_list",
+      "type": "request",
+      "parentId": "fld_admin",
+      "name": "Admin - Financial Reports List",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/financial-reports",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" },
+      "parameters": [ { "name": "page", "value": "1" }, { "name": "limit", "value": "20" } ]
+    },
+    {
+      "_id": "req_admin_financial_reports_upload",
+      "type": "request",
+      "parentId": "fld_admin",
+      "name": "Admin - Financial Reports Upload",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/financial-reports/upload",
+      "authentication": { "type": "bearer", "token": "{{ response 'Auth - Login', 'body', 'jsonPath' '$.token' }}" },
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "report", "type": "file", "fileName": "", "disabled": false },
+          { "name": "period", "type": "text", "value": "2025-10" }
+        ]
+      }
+    },
+
+    {
+      "_id": "req_public_financial_reports_list",
+      "type": "request",
+      "parentId": "fld_public",
+      "name": "Financial Reports - Public List",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/financial-reports/public"
+    },
+    {
+      "_id": "req_public_financial_reports_download",
+      "type": "request",
+      "parentId": "fld_public",
+      "name": "Financial Reports - Public Download",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/financial-reports/public/download/{{ _.financial_report_id }}"
+    }
+  ]
+}
