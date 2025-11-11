@@ -1,34 +1,35 @@
 # apps/api/Dockerfile
 FROM node:20-alpine
 
-# Define diretório de trabalho
 WORKDIR /app
 
-# Copia dependências e instala apenas as necessárias em produção
+# 1) Copia manifestos e instala TODAS dependências (inclui dev)
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
-# Copia o restante do código da API
+# 2) Copia o restante do código + a pasta prisma
+#    (garanta que a pasta 'prisma' está no repo e NÃO está no .dockerignore)
 COPY . .
+# Se seu monorepo tiver 'prisma' fora de apps/api, ajuste o caminho:
+# COPY prisma ./prisma
 
-# Define variáveis padrão
+# 3) Variáveis básicas
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Cria diretório de uploads (usando a variável de ambiente)
-# Se não estiver definida no build, cria /app/uploads por padrão
+# 4) Gera o client do Prisma (não precisa de conexão com DB)
+RUN npx prisma generate
+
+# 5) Remove devDependencies para imagem final enxuta
+RUN npm prune --production
+
+# (opcional) cria diretório de uploads via env, se você usa UPLOAD_PATH
 ARG UPLOAD_PATH=/app/uploads
 ENV UPLOAD_PATH=${UPLOAD_PATH}
-RUN mkdir -p ${UPLOAD_PATH} && chmod -R 777 ${UPLOAD_PATH}
+RUN mkdir -p ${UPLOAD_PATH} && chmod -R 755 ${UPLOAD_PATH}
 
-# Usa o usuário padrão 'node' (mais seguro)
-USER node
-
-# Expõe a porta da aplicação
 EXPOSE 3000
 
-# Se usar Prisma, descomente a linha abaixo:
-# RUN npx prisma generate
-
-# Comando de inicialização
+# Se quiser aplicar migrações na subida (alternativa ao Post-deploy):
+# CMD [ "sh", "-c", "npx prisma migrate deploy && node server.js" ]
 CMD ["node", "server.js"]
