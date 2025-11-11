@@ -1,32 +1,22 @@
-# apps/api/Dockerfile
 FROM node:20-bookworm-slim
-
-# Atualiza pacotes e instala openssl
 RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 
-# Copia dependências e instala todas (inclui dev para prisma)
 COPY package*.json ./
 RUN npm ci
 
-# Copia o restante do código
 COPY . .
 
-# Gera o client do Prisma
+# Gera o client do Prisma (necessário!)
 RUN npx prisma generate
 
-# Remove dev deps para reduzir tamanho
+# (opcional) aplica apenas prod deps
 RUN npm prune --production
 
-# Define variáveis padrão
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=3001
 ENV UPLOAD_PATH=/app/uploads
-
-# Cria diretório de uploads com permissão
 RUN mkdir -p ${UPLOAD_PATH} && chmod -R 755 ${UPLOAD_PATH}
 
 EXPOSE 3001
-
 CMD ["node", "server.js"]
