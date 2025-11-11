@@ -75,11 +75,24 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Rota não encontrada' });
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`📍 Ambiente: ${process.env.NODE_ENV}`);
-  console.log(`🌐 URL: ${process.env.BACKEND_URL || `http://localhost:${PORT}`}`);
+const { connectDatabase } = require('./config/database');
+
+// Conecta ao banco antes de iniciar o servidor
+connectDatabase().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    console.log(`📍 Ambiente: ${process.env.NODE_ENV}`);
+    console.log(`🌐 URL: ${process.env.BACKEND_URL || `http://localhost:${PORT}`}`);
+  });
+}).catch((err) => {
+  console.error('❌ Falha ao iniciar o servidor:', err);
 });
+
+// // Iniciar servidor
+// app.listen(PORT, () => {
+//   console.log(`🚀 Servidor rodando na porta ${PORT}`);
+//   console.log(`📍 Ambiente: ${process.env.NODE_ENV}`);
+//   console.log(`🌐 URL: ${process.env.BACKEND_URL || `http://localhost:${PORT}`}`);
+// });
 
 module.exports = app;
