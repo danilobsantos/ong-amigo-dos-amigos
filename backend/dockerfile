@@ -1,35 +1,32 @@
 # apps/api/Dockerfile
-FROM node:20-alpine
+FROM node:20-bookworm-slim
+
+# Atualiza pacotes e instala openssl
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# 1) Copia manifestos e instala TODAS dependências (inclui dev)
+# Copia dependências e instala todas (inclui dev para prisma)
 COPY package*.json ./
 RUN npm ci
 
-# 2) Copia o restante do código + a pasta prisma
-#    (garanta que a pasta 'prisma' está no repo e NÃO está no .dockerignore)
+# Copia o restante do código
 COPY . .
-# Se seu monorepo tiver 'prisma' fora de apps/api, ajuste o caminho:
-# COPY prisma ./prisma
 
-# 3) Variáveis básicas
-ENV NODE_ENV=production
-ENV PORT=3000
-
-# 4) Gera o client do Prisma (não precisa de conexão com DB)
+# Gera o client do Prisma
 RUN npx prisma generate
 
-# 5) Remove devDependencies para imagem final enxuta
+# Remove dev deps para reduzir tamanho
 RUN npm prune --production
 
-# (opcional) cria diretório de uploads via env, se você usa UPLOAD_PATH
-ARG UPLOAD_PATH=/app/uploads
-ENV UPLOAD_PATH=${UPLOAD_PATH}
+# Define variáveis padrão
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV UPLOAD_PATH=/app/uploads
+
+# Cria diretório de uploads com permissão
 RUN mkdir -p ${UPLOAD_PATH} && chmod -R 755 ${UPLOAD_PATH}
 
 EXPOSE 3000
 
-# Se quiser aplicar migrações na subida (alternativa ao Post-deploy):
-# CMD [ "sh", "-c", "npx prisma migrate deploy && node server.js" ]
 CMD ["node", "server.js"]
