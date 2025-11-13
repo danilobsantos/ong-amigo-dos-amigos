@@ -70,7 +70,7 @@ const AdminLogin = () => {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Email */}
               <div>
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email" className="block mb-2">E-mail</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
@@ -84,7 +84,7 @@ const AdminLogin = () => {
                       }
                     })}
                     className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
-                    placeholder="admin@amigodosamigos.org"
+                    placeholder="admin@ong.com.br"
                   />
                 </div>
                 {errors.email && (
@@ -94,7 +94,7 @@ const AdminLogin = () => {
 
               {/* Senha */}
               <div>
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="password" className="block mb-2">Senha</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
@@ -146,18 +146,6 @@ const AdminLogin = () => {
             </form>
           </CardContent>
         </Card>
-
-        {/* Informações de Teste */}
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <h3 className="font-semibold text-blue-800 mb-2">Acesso de Demonstração</h3>
-            <div className="text-sm text-blue-700 space-y-1">
-              <p><strong>E-mail:</strong> admin@amigodosamigos.org</p>
-              <p><strong>Senha:</strong> admin123</p>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Link para o Site */}
         <div className="text-center">
           <Button asChild variant="ghost">
