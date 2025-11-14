@@ -1,42 +1,51 @@
-# =========================================================
-# 1) Build: compila o React com Vite usando PNPM
-# =========================================================
+# ---------------------------------------------------------
+# Build Stage — React (Vite + pnpm) usando multiplos fallbacks
+# ---------------------------------------------------------
 FROM node:20-alpine AS build
 
-# Habilita o Corepack e ativa a mesma versão do pnpm do seu projeto
-# (se preferir, troque por: RUN npm i -g pnpm@10)
-RUN corepack enable && corepack prepare pnpm@10.4.1 --activate
+# Fix HTTPS/SSL: instalar certificados e curl para fallback
+RUN apk add --no-cache ca-certificates curl
 
 WORKDIR /app
 
-# Copia manifestos primeiro para cache eficiente
-COPY pnpm-lock.yaml ./
-COPY package.json ./
+# Variável com a versão do PNPM que você usa no projeto
+ARG PNPM_VERSION=10.4.1
 
-# Instala dependências (sem modificar lockfile)
+# Tenta:
+# 1. corepack prepare
+# 2. npm -g (registry normal)
+# 3. npm -g usando registry da npmmirror (China)
+RUN corepack enable \
+  && (corepack prepare pnpm@"${PNPM_VERSION}" --activate \
+  || npm install -g pnpm@"${PNPM_VERSION}" \
+  || npm install -g pnpm@"${PNPM_VERSION}" --registry=https://registry.npmmirror.com)
+
+# Copia manifests primeiro (cache-friendly)
+COPY package.json pnpm-lock.yaml ./
+
+# Instala dependências via pnpm
 RUN pnpm install --frozen-lockfile
 
-# Copia o restante do código do frontend
-# (Como este Dockerfile está dentro de /frontend/ong-frontend, o contexto já é a pasta correta)
+# Copia o projeto
 COPY . .
 
-# Se quiser injetar VITE_API_URL no build pelo painel, use ARG + ENV
+# Build do Vite (com build args)
 ARG VITE_API_URL
+ARG VITE_SITE_URL
 ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_SITE_URL=${VITE_SITE_URL}
 
-# Compila o projeto (gera /app/dist)
 RUN pnpm build
 
-
-# =========================================================
-# 2) Runtime: servidor Nginx estático, leve e rápido
-# =========================================================
+# ---------------------------------------------------------
+# Runtime Stage — Servindo via Nginx
+# ---------------------------------------------------------
 FROM nginx:alpine
 
-# Substitui a config padrão pelo nosso SPA-friendly
+# Substitui configuração padrão por nossa config de SPA
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copia os artefatos compilados do estágio anterior
+# Copia artefatos buildados
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
