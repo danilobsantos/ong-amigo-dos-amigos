@@ -149,7 +149,7 @@ const CreatePost = () => {
         const imageFormData = new FormData();
         imageFormData.append('images', formData.featuredImage);
         
-        const uploadResponse = await uploadsAPI.uploadImages(imageFormData);
+        const uploadResponse = await uploadsAPI.uploadImages(imageFormData, 'blog');
         imageUrl = uploadResponse.data.urls[0];
       }
       

@@ -53,12 +53,11 @@ log "Ambiente: $ENVIRONMENT"
 # Configurar variáveis de ambiente
 if [ "$ENVIRONMENT" = "production" ]; then
     export NODE_ENV=production
-    export REACT_APP_API_URL="https://api.amigodosamigos.org"
-    export REACT_APP_SITE_URL="https://amigodosamigos.org"
+    export VITE_API_URL="https://api.amigodosamigos.org/api"
+    export VITE_SITE_URL="https://amigodosamigos.org"
 else
-    export NODE_ENV=development
-    export REACT_APP_API_URL="http://localhost:3001"
-    export REACT_APP_SITE_URL="http://localhost:3000"
+    export VITE_API_URL="http://localhost:3001/api"
+    export VITE_SITE_URL="http://localhost:5173"
 fi
 
 # Função para instalar dependências
@@ -165,6 +164,7 @@ optimize_images() {
         cp -r assets/images/* frontend/ong-frontend/public/images/ 2>/dev/null || true
     fi
     
+    log "⚠️ AVISO: Certifique-se de que a pasta backend/uploads é persistente no seu servidor!"
     log "Otimização de imagens concluída"
 }
 

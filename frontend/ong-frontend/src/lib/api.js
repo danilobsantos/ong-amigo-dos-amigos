@@ -152,9 +152,12 @@ export const financialReportsAPI = {
 
 // Uploads
 export const uploadsAPI = {
-  uploadImages: (formData) => api.post('/uploads', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  uploadImages: (formData, type) => {
+    const url = type ? `/uploads?type=${type}` : '/uploads';
+    return api.post(url, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
   uploadLogo: (formData) => api.post('/uploads/logo', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })

@@ -175,19 +175,14 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
     // After DB transaction, remove files that were present before but not referenced anymore
     try {
       const removed = existingUrls.filter(u => !(images || []).includes(u));
-      const UPLOAD_PATH = path.join(__dirname, '..', 'uploads');
-      const FRONTEND_DOGS_PATH = path.join(__dirname, '..', '..', 'frontend', 'ong-frontend', 'public', 'images', 'dogs');
+      const UPLOAD_PATH = path.join(__dirname, '..', 'uploads', 'pets');
       removed.forEach((url) => {
         try {
           // extract filename from url
           const filename = url.split('/').pop();
           const backendFile = path.join(UPLOAD_PATH, filename);
-          const frontendFile = path.join(FRONTEND_DOGS_PATH, filename);
           if (fs.existsSync(backendFile)) {
             fs.unlinkSync(backendFile);
-          }
-          if (fs.existsSync(frontendFile)) {
-            fs.unlinkSync(frontendFile);
           }
         } catch (e) {
           console.warn('Erro ao remover arquivo de imagem:', e.message);
@@ -226,15 +221,12 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     await prisma.dog.delete({ where: { id: dogId } });
 
     // delete files from disk
-    const UPLOAD_PATH = path.join(__dirname, '..', 'uploads');
-    const FRONTEND_DOGS_PATH = path.join(__dirname, '..', '..', 'frontend', 'ong-frontend', 'public', 'images', 'dogs');
+    const UPLOAD_PATH = path.join(__dirname, '..', 'uploads', 'pets');
     images.forEach(({ url }) => {
       try {
         const filename = url.split('/').pop();
         const backendFile = path.join(UPLOAD_PATH, filename);
-        const frontendFile = path.join(FRONTEND_DOGS_PATH, filename);
         if (fs.existsSync(backendFile)) fs.unlinkSync(backendFile);
-        if (fs.existsSync(frontendFile)) fs.unlinkSync(frontendFile);
       } catch (e) {
         console.warn('Erro ao remover arquivo de imagem durante delete dog:', e.message);
       }
