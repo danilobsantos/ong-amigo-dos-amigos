@@ -147,13 +147,20 @@ router.post('/stripe', async (req, res) => {
   try {
     console.log('Recebendo dados Stripe:', req.body);
     
+    // Buscar chaves do Stripe no banco de dados
+    const settings = await prisma.setting.findFirst();
+    const stripeSecretKey = settings?.stripeSecretKey || process.env.STRIPE_SECRET_KEY;
+
     // Verificar se as chaves do Stripe estão configuradas
-    if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_sua_chave_stripe_aqui') {
+    if (!stripeSecretKey || stripeSecretKey === 'sk_test_sua_chave_stripe_aqui') {
       console.error('Chave do Stripe não configurada');
       return res.status(500).json({ 
         error: 'Pagamentos com cartão temporariamente indisponíveis. Use PIX como alternativa.' 
       });
     }
+
+    // Inicializar stripe com a chave correta
+    const stripeInstance = require('stripe')(stripeSecretKey);
     
     const { error, value } = donationDataSchema.validate(req.body);
     if (error) {
@@ -198,7 +205,7 @@ router.post('/stripe', async (req, res) => {
       sessionConfig.line_items[0].price_data.recurring = { interval: 'month' };
     }
 
-    const session = await stripe.checkout.sessions.create(sessionConfig);
+    const session = await stripeInstance.checkout.sessions.create(sessionConfig);
 
     // Atualizar doação com ID da sessão
     await prisma.donation.update({
@@ -233,7 +240,11 @@ router.get('/stripe/status/:sessionId', async (req, res) => {
   try {
     const { sessionId } = req.params;
     
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const settings = await prisma.setting.findFirst();
+    const stripeSecretKey = settings?.stripeSecretKey || process.env.STRIPE_SECRET_KEY;
+    const stripeInstance = require('stripe')(stripeSecretKey);
+    
+    const session = await stripeInstance.checkout.sessions.retrieve(sessionId);
     
     // Buscar doação no banco
     const donation = await prisma.donation.findFirst({
@@ -335,8 +346,13 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     const sig = req.headers['stripe-signature'];
     let event;
 
+    const settings = await prisma.setting.findFirst();
+    const stripeSecretKey = settings?.stripeSecretKey || process.env.STRIPE_SECRET_KEY;
+    const stripeWebhookSecret = settings?.stripeWebhookSecret || process.env.STRIPE_WEBHOOK_SECRET;
+    const stripeInstance = require('stripe')(stripeSecretKey);
+
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+      event = stripeInstance.webhooks.constructEvent(req.body, sig, stripeWebhookSecret);
     } catch (err) {
       console.error('Erro na verificação do webhook:', err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);

@@ -21,7 +21,10 @@ const Settings = () => {
     facebook: '',
     instagram: '',
     youtube: '',
-    tiktok: ''
+    tiktok: '',
+    stripePublicKey: '',
+    stripeSecretKey: '',
+    stripeWebhookSecret: ''
   });
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -44,7 +47,10 @@ const Settings = () => {
         facebook: response.data.settings.facebook || '',
         instagram: response.data.settings.instagram || '',
         youtube: response.data.settings.youtube || '',
-        tiktok: response.data.settings.tiktok || ''
+        tiktok: response.data.settings.tiktok || '',
+        stripePublicKey: response.data.settings.stripePublicKey || '',
+        stripeSecretKey: response.data.settings.stripeSecretKey || '',
+        stripeWebhookSecret: response.data.settings.stripeWebhookSecret || ''
       };
       setSettings(settingsData);
     } catch (error) {
@@ -123,7 +129,10 @@ const Settings = () => {
         facebook: response.data.settings.facebook || '',
         instagram: response.data.settings.instagram || '',
         youtube: response.data.settings.youtube || '',
-        tiktok: response.data.settings.tiktok || ''
+        tiktok: response.data.settings.tiktok || '',
+        stripePublicKey: response.data.settings.stripePublicKey || '',
+        stripeSecretKey: response.data.settings.stripeSecretKey || '',
+        stripeWebhookSecret: response.data.settings.stripeWebhookSecret || ''
       };
       setSettings(updatedSettings);
       
@@ -333,6 +342,51 @@ const Settings = () => {
                       onChange={handleInputChange}
                       placeholder="https://tiktok.com/@seu-perfil"
                     />
+                  </div>
+                </div>
+
+                {/* Configuração do Stripe */}
+                <div className="space-y-4 pt-4 border-t">
+                  <h3 className="text-lg font-medium text-gray-900">Configuração do Stripe</h3>
+                  <p className="text-sm text-gray-500">Configurações para processamento de pagamentos e doações com cartão.</p>
+                  
+                  {/* Stripe Public Key */}
+                  <div className="space-y-2">
+                    <Label htmlFor="stripePublicKey">Chave Pública (Publishable Key)</Label>
+                    <Input
+                      id="stripePublicKey"
+                      name="stripePublicKey"
+                      value={settings.stripePublicKey}
+                      onChange={handleInputChange}
+                      placeholder="pk_test_..."
+                    />
+                  </div>
+
+                  {/* Stripe Secret Key */}
+                  <div className="space-y-2">
+                    <Label htmlFor="stripeSecretKey">Chave Secreta (Secret Key)</Label>
+                    <Input
+                      id="stripeSecretKey"
+                      name="stripeSecretKey"
+                      type="password"
+                      value={settings.stripeSecretKey}
+                      onChange={handleInputChange}
+                      placeholder="sk_test_..."
+                    />
+                  </div>
+
+                  {/* Stripe Webhook Secret */}
+                  <div className="space-y-2">
+                    <Label htmlFor="stripeWebhookSecret">Segredo do Webhook (Webhook Secret)</Label>
+                    <Input
+                      id="stripeWebhookSecret"
+                      name="stripeWebhookSecret"
+                      type="password"
+                      value={settings.stripeWebhookSecret}
+                      onChange={handleInputChange}
+                      placeholder="whsec_..."
+                    />
+                    <p className="text-xs text-gray-500">Necessário para confirmar pagamentos automaticamente.</p>
                   </div>
                 </div>
               </div>
