@@ -77,6 +77,7 @@ router.get('/settings', async (req, res) => {
           instagram: '',
           youtube: '',
           tiktok: '',
+          pixKey: '',
           stripePublicKey: '',
           stripeSecretKey: '',
           stripeWebhookSecret: ''
@@ -95,7 +96,7 @@ router.put('/settings', async (req, res) => {
   try {
     const { 
       siteName, logo, address, phone, whatsapp, email, 
-      facebook, instagram, youtube, tiktok,
+      facebook, instagram, youtube, tiktok, pixKey,
       stripePublicKey, stripeSecretKey, stripeWebhookSecret
     } = req.body;
     
@@ -117,6 +118,7 @@ router.put('/settings', async (req, res) => {
           instagram,
           youtube,
           tiktok,
+          pixKey,
           stripePublicKey,
           stripeSecretKey,
           stripeWebhookSecret
@@ -136,6 +138,7 @@ router.put('/settings', async (req, res) => {
           instagram,
           youtube,
           tiktok,
+          pixKey,
           stripePublicKey,
           stripeSecretKey,
           stripeWebhookSecret

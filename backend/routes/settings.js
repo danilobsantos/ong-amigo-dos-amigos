@@ -23,6 +23,7 @@ router.get('/', async (req, res) => {
           instagram: '',
           youtube: '',
           tiktok: '',
+          pixKey: '',
           stripePublicKey: '',
           stripeSecretKey: '',
           stripeWebhookSecret: ''
@@ -42,6 +43,7 @@ router.get('/', async (req, res) => {
       instagram: settings.instagram,
       youtube: settings.youtube,
       tiktok: settings.tiktok,
+      pixKey: settings.pixKey,
       stripePublicKey: settings.stripePublicKey
     };
 

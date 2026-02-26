@@ -89,6 +89,7 @@ export const donationsAPI = {
   createPix: (data) => api.post('/donations/pix', data),
   createStripe: (data) => api.post('/donations/stripe', data),
   checkStripeStatus: (sessionId) => api.get(`/donations/stripe/status/${sessionId}`),
+  getStatusById: (id) => api.get(`/donations/status-by-id/${id}`),
   getAll: (params = {}) => api.get('/donations', { params }),
   updateStatus: (id, status, notes = null) => {
     const payload = { status };
