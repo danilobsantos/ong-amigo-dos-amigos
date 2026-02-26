@@ -247,6 +247,11 @@ router.put('/blog/:id', async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
+    const currentPost = await prisma.blogPost.findUnique({
+      where: { id: parseInt(id) },
+      select: { image: true }
+    });
+
     const postData = {
       ...value,
       publishedAt: value.published ? new Date() : null
@@ -256,6 +261,17 @@ router.put('/blog/:id', async (req, res) => {
       where: { id: parseInt(id) },
       data: postData
     });
+
+    // Remover imagem antiga se mudou
+    if (currentPost && currentPost.image && currentPost.image !== value.image) {
+      try {
+        const filename = currentPost.image.split('/').pop();
+        const filePath = path.join(__dirname, '..', 'uploads', 'blog', filename);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      } catch (e) {
+        console.warn('Erro ao remover imagem antiga do blog:', e.message);
+      }
+    }
 
     res.json({
       message: 'Post atualizado com sucesso',
@@ -275,9 +291,24 @@ router.delete('/blog/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
+    const post = await prisma.blogPost.findUnique({
+      where: { id: parseInt(id) },
+      select: { image: true }
+    });
+
     await prisma.blogPost.delete({
       where: { id: parseInt(id) }
     });
+
+    if (post && post.image) {
+      try {
+        const filename = post.image.split('/').pop();
+        const filePath = path.join(__dirname, '..', 'uploads', 'blog', filename);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      } catch (e) {
+        console.warn('Erro ao remover imagem do blog no delete:', e.message);
+      }
+    }
 
     res.json({ message: 'Post deletado com sucesso' });
   } catch (error) {

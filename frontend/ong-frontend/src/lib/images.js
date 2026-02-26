@@ -20,20 +20,23 @@ export function normalizeImageUrl(url) {
   const trimmed = url.trim();
   if (trimmed === '') return url;
 
-  // Já é uma URL absoluta
+  // Already an absolute URL
   if (/^https?:\/\//.test(trimmed)) return trimmed;
 
-  // Uploads servidos pelo backend
+  // Uploads served by backend (check /uploads/ prefix)
   if (trimmed.startsWith('/uploads/')) return `${BACKEND_ORIGIN}${trimmed}`;
 
-  // Assets estáticos do frontend
+  // Static assets from frontend (check /images/ prefix)
   if (trimmed.startsWith('/images/')) return `${window.location.origin}${trimmed}`;
 
-  // Qualquer outro caminho absoluto, assumir backend
-  if (trimmed.startsWith('/')) return `${BACKEND_ORIGIN}${trimmed}`;
+  // If it starts with /, assume it's from backend uploads if not caught above
+  if (trimmed.startsWith('/')) return `${BACKEND_ORIGIN}/uploads${trimmed}`;
 
-  // Caminhos relativos: manter como estão
-  return trimmed;
+  // If it's just a filename (no slashes), assume it's a backend dog image
+  if (!trimmed.includes('/')) return `${BACKEND_ORIGIN}/uploads/${trimmed}`;
+
+  // Fallback: keep as is but prefix with backend origin if it looks like a path
+  return `${BACKEND_ORIGIN}/${trimmed}`;
 }
 
 /**

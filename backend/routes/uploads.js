@@ -25,7 +25,20 @@ if (!fs.existsSync(FRONTEND_IMAGES_PATH)) {
 }
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_PATH),
+  destination: (req, file, cb) => {
+    const type = req.query.type; // 'pets', 'blog', or undefined
+    let targetPath = UPLOAD_PATH;
+    
+    if (type === 'pets' || type === 'blog') {
+      targetPath = path.join(UPLOAD_PATH, type);
+    }
+    
+    if (!fs.existsSync(targetPath)) {
+      fs.mkdirSync(targetPath, { recursive: true });
+    }
+    
+    cb(null, targetPath);
+  },
   filename: (req, file, cb) => {
     const safe = file.originalname.replace(/\s+/g, '_');
     cb(null, `${Date.now()}-${safe}`);
@@ -34,25 +47,22 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Upload multiple images (admin)
+/**
+ * @api {post} /api/uploads/ Multi-upload
+ * @apiParam {String} [type] Subfolder type ('pets' or 'blog')
+ */
 router.post('/', upload.array('images', 12), (req, res) => {
   try {
     const files = req.files || [];
     const base = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3001}`;
+    const type = req.query.type;
 
-    // Copy each file to frontend public images/dogs folder (so frontend can serve it as /images/dogs/...)
-    files.forEach(f => {
-      try {
-        const src = path.join(UPLOAD_PATH, f.filename);
-        const dest = path.join(FRONTEND_DOGS_PATH, f.filename);
-        fs.copyFileSync(src, dest);
-      } catch (copyErr) {
-        console.warn('Não foi possível copiar para pasta frontend:', copyErr.message);
-      }
+    // Return URLs containing the subfolder path if type is provided
+    const urls = files.map(f => {
+      const folderPath = (type === 'pets' || type === 'blog') ? `${type}/` : '';
+      return `${base}/uploads/${folderPath}${f.filename}`;
     });
 
-    // Prefer returning URLs under /uploads (backend) for compatibility, but also provide /images/dogs paths
-    const urls = files.map(f => `${base}/uploads/${f.filename}`);
     res.json({ urls });
   } catch (err) {
     console.error('Erro no upload:', err);
@@ -62,7 +72,7 @@ router.post('/', upload.array('images', 12), (req, res) => {
 
 // Upload logo (admin) - single image with specific size requirements
 router.post('/logo', (req, res) => {
-  const upload = multer({
+  const uploadMiddleware = multer({
     storage,
     limits: {
       fileSize: 5 * 1024 * 1024, // 5MB max
@@ -76,7 +86,7 @@ router.post('/logo', (req, res) => {
     }
   }).single('logo');
 
-  upload(req, res, (err) => {
+  uploadMiddleware(req, res, (err) => {
     if (err) {
       console.error('Erro no upload da logo:', err);
       return res.status(400).json({ error: err.message });
@@ -88,18 +98,11 @@ router.post('/logo', (req, res) => {
       }
 
       const base = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3001}`;
+      const type = req.query.type;
       
-      // Copy file to frontend public images folder (so frontend can serve it as /images/...)
-      try {
-        const src = path.join(UPLOAD_PATH, req.file.filename);
-        const dest = path.join(FRONTEND_IMAGES_PATH, req.file.filename);
-        fs.copyFileSync(src, dest);
-      } catch (copyErr) {
-        console.warn('Não foi possível copiar para pasta frontend:', copyErr.message);
-      }
-
-      // Return URL under /uploads (backend) for compatibility
-      const url = `${base}/uploads/${req.file.filename}`;
+      const folderPath = (type === 'pets' || type === 'blog') ? `${type}/` : '';
+      const url = `${base}/uploads/${folderPath}${req.file.filename}`;
+      
       res.json({ url, filename: req.file.filename });
     } catch (err) {
       console.error('Erro ao processar upload da logo:', err);

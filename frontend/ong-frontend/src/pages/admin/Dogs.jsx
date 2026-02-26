@@ -132,7 +132,7 @@ const AdminDogs = () => {
       if (createSelectedFiles && createSelectedFiles.length > 0) {
         const fd = new FormData();
         createSelectedFiles.forEach(f => fd.append('images', f.file));
-        const uploadRes = await uploadsAPI.uploadImages(fd);
+        const uploadRes = await uploadsAPI.uploadImages(fd, 'pets');
         images = uploadRes.data.urls || [];
       }
 
@@ -195,7 +195,7 @@ const AdminDogs = () => {
       if (data.images && data.images.length > 0) {
         const fd = new FormData();
         for (let i = 0; i < data.images.length; i++) fd.append('images', data.images[i]);
-        const uploadRes = await uploadsAPI.uploadImages(fd);
+        const uploadRes = await uploadsAPI.uploadImages(fd, 'pets');
         const uploaded = uploadRes.data.urls || [];
         images = images.concat(uploaded);
       }
