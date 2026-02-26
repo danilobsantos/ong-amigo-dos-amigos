@@ -215,6 +215,7 @@ model Setting {
   instagram          String?
   youtube            String?
   tiktok             String?
+  pixKey             String?
   stripePublicKey    String?
   stripeSecretKey    String?
   stripeWebhookSecret String?

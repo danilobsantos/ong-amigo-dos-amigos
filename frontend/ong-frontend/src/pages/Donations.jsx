@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, DollarSign, CreditCard, Smartphone, FileText, Shield, Users, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,14 +12,15 @@ import { useForm } from 'react-hook-form';
 import { donationsAPI } from '../lib/api';
 
 const Donations = () => {
+  const navigate = useNavigate();
   const [selectedAmount, setSelectedAmount] = useState('');
   const [customAmount, setCustomAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('pix');
   const [recurring, setRecurring] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [showPixPayment, setShowPixPayment] = useState(false);
   const [pixData, setPIXData] = useState(null);
+  const [currentDonationId, setCurrentDonationId] = useState(null);
 
   const { register, handleSubmit, reset } = useForm();
 
@@ -68,11 +70,13 @@ const Donations = () => {
         
         // Mostrar QR Code PIX
         setPIXData(response.data.pix);
+        setCurrentDonationId(response.data.donation.id);
         setShowPixPayment(true);
       } else if (paymentMethod === 'stripe') {
         // Processar pagamento Stripe
         try {
           const response = await donationsAPI.createStripe(donationData);
+          setCurrentDonationId(response.data.donation.id);
           
           // Redirecionar para checkout do Stripe
           window.location.href = response.data.checkoutUrl;
@@ -428,11 +432,7 @@ const Donations = () => {
                     variant="outline" 
                     onClick={() => {
                       setShowPixPayment(false);
-                      setShowSuccess(true);
-                      reset();
-                      setSelectedAmount('');
-                      setCustomAmount('');
-                      setRecurring(false);
+                      navigate(`/doacoes/sucesso?donation_id=${currentDonationId}`);
                     }}
                     className="w-full"
                   >
@@ -441,55 +441,6 @@ const Donations = () => {
                 </div>
               </div>
             )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Agradecimento */}
-      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-center gap-2">
-              Obrigado pela sua doação!
-            </DialogTitle>
-            <DialogDescription>
-              Sua contribuição foi recebida com sucesso e fará toda a diferença
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="text-center space-y-6">
-            <div className="flex justify-center">
-              <Heart className="w-16 h-16 text-primary" />
-            </div>
-            
-            <p className="text-gray-600">
-              Sua contribuição fará uma diferença real na vida dos nossos bichinhos. 
-              Você receberá um e-mail com os detalhes da doação.
-            </p>
-            
-            <div className="space-y-3">
-              <Button 
-                onClick={() => {
-                  setShowSuccess(false);
-                  // Resetar o formulário
-                  reset();
-                  setSelectedAmount('');
-                  setCustomAmount('');
-                  setRecurring(false);
-                }} 
-                className="w-full"
-              >
-                Fazer Nova Doação
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                onClick={() => window.location.href = '/'}
-                className="w-full"
-              >
-                Voltar ao Início
-              </Button>
-            </div>
           </div>
         </DialogContent>
       </Dialog>

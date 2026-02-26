@@ -9,24 +9,30 @@ import { motion } from 'framer-motion';
 const DonationSuccess = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
+  const donationId = searchParams.get('donation_id');
   const [loading, setLoading] = useState(true);
   const [donation, setDonation] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (sessionId) {
+    if (sessionId || donationId) {
       verifyPayment();
     } else {
       setLoading(false);
       setError('Sessão de pagamento não encontrada.');
     }
-  }, [sessionId]);
+  }, [sessionId, donationId]);
 
   const verifyPayment = async () => {
     try {
       setLoading(true);
-      const response = await donationsAPI.checkStripeStatus(sessionId);
-      setDonation(response.data.donation);
+      if (sessionId) {
+        const response = await donationsAPI.checkStripeStatus(sessionId);
+        setDonation(response.data.donation);
+      } else if (donationId) {
+        const response = await donationsAPI.getStatusById(donationId);
+        setDonation(response.data.donation);
+      }
     } catch (err) {
       console.error('Erro ao verificar pagamento:', err);
       setError('Não foi possível verificar os detalhes da sua doação, mas não se preocupe, ela será processada em breve!');

@@ -22,6 +22,7 @@ const Settings = () => {
     instagram: '',
     youtube: '',
     tiktok: '',
+    pixKey: '',
     stripePublicKey: '',
     stripeSecretKey: '',
     stripeWebhookSecret: ''
@@ -48,6 +49,7 @@ const Settings = () => {
         instagram: response.data.settings.instagram || '',
         youtube: response.data.settings.youtube || '',
         tiktok: response.data.settings.tiktok || '',
+        pixKey: response.data.settings.pixKey || '',
         stripePublicKey: response.data.settings.stripePublicKey || '',
         stripeSecretKey: response.data.settings.stripeSecretKey || '',
         stripeWebhookSecret: response.data.settings.stripeWebhookSecret || ''
@@ -130,6 +132,7 @@ const Settings = () => {
         instagram: response.data.settings.instagram || '',
         youtube: response.data.settings.youtube || '',
         tiktok: response.data.settings.tiktok || '',
+        pixKey: response.data.settings.pixKey || '',
         stripePublicKey: response.data.settings.stripePublicKey || '',
         stripeSecretKey: response.data.settings.stripeSecretKey || '',
         stripeWebhookSecret: response.data.settings.stripeWebhookSecret || ''
@@ -341,6 +344,23 @@ const Settings = () => {
                       value={settings.tiktok}
                       onChange={handleInputChange}
                       placeholder="https://tiktok.com/@seu-perfil"
+                    />
+                  </div>
+                </div>
+
+                {/* Configuração do PIX */}
+                <div className="space-y-4 pt-4 border-t">
+                  <h3 className="text-lg font-medium text-gray-900">Configuração do PIX</h3>
+                  <p className="text-sm text-gray-500">Insira a chave PIX para receber doações instantâneas.</p>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="pixKey">Chave PIX</Label>
+                    <Input
+                      id="pixKey"
+                      name="pixKey"
+                      value={settings.pixKey}
+                      onChange={handleInputChange}
+                      placeholder="CPF, E-mail, Telefone ou Chave Aleatória"
                     />
                   </div>
                 </div>

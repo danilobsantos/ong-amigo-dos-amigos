@@ -112,16 +112,25 @@ router.post('/pix', async (req, res) => {
       }
     });
 
+    // Buscar chave PIX no banco de dados
+    const settings = await prisma.setting.findFirst();
+    const pixKey = settings?.pixKey || process.env.PIX_KEY;
+
+    if (!pixKey) {
+      console.error('Chave PIX não configurada');
+      return res.status(500).json({ error: 'Pagamento PIX temporariamente indisponível' });
+    }
+
     // Gerar dados do PIX com payload válido
     const pixPayload = generatePixPayload(
-      process.env.PIX_KEY,
+      pixKey,
       value.amount,
       'ONG Amigo dos Amigos',
       'Guaranesia'
     );
     
     console.log('PIX Payload gerado:', pixPayload);
-    console.log('Chave PIX:', process.env.PIX_KEY);
+    console.log('Chave PIX utilizada:', pixKey);
     console.log('Valor:', value.amount);
     
     // Gerar QR Code
@@ -133,7 +142,7 @@ router.post('/pix', async (req, res) => {
       pix: {
         payload: pixPayload,
         qrCode: qrCodeDataURL,
-        key: process.env.PIX_KEY
+        key: pixKey
       }
     });
   } catch (error) {
@@ -273,6 +282,25 @@ router.get('/stripe/status/:sessionId', async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao verificar status:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Obter detalhes de uma doação por ID (público) - usado na página de sucesso do PIX
+router.get('/status-by-id/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const donation = await prisma.donation.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!donation) {
+      return res.status(404).json({ error: 'Doação não encontrada' });
+    }
+
+    res.json({ donation });
+  } catch (error) {
+    console.error('Erro ao buscar doação:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
