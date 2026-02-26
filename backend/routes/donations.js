@@ -10,16 +10,41 @@ const router = express.Router();
 // Middleware combinado para admin
 const authenticateAdmin = [authenticateToken, requireAdmin];
 
+// Função para remover acentos e caracteres especiais para compatibilidade bancária
+function normalizeString(str) {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .toUpperCase()
+    .replace(/[^A-Z0-0\s]/g, '') // Mantém apenas letras, números e espaços
+    .trim();
+}
+
 // Função para gerar payload PIX válido seguindo padrão EMV
 function generatePixPayload(pixKey, amount, recipientName, city) {
   // Normalizar valores
   const amountStr = amount.toFixed(2);
-  const normalizedName = recipientName.substring(0, 25); // Máximo 25 caracteres
-  const normalizedCity = city.substring(0, 15); // Máximo 15 caracteres
+  const normalizedName = normalizeString(recipientName).substring(0, 25);
+  const normalizedCity = normalizeString(city).substring(0, 15);
+  
+  // Normalizar Chave PIX
+  let normalizedKey = pixKey.trim();
+  // Se for e-mail ou chave aleatória, não removemos caracteres especiais exceto espaços
+  // Se for CPF (11), CNPJ (14) ou Telefone (10+) e conter apenas números/pontos/traços
+  if (normalizedKey.match(/^[0-9.\-\s+]+$/)) {
+    normalizedKey = normalizedKey.replace(/[^0-9]/g, '');
+    // Se for telefone brasileiro e não tiver o prefixo +55, adicionamos (opcional, mas recomendado)
+    if (normalizedKey.length >= 10 && normalizedKey.length <= 11) {
+      // Alguns bancos preferem 55+DDD+Número
+      // mas vamos manter apenas os números por enquanto pois varia entre bancos
+    }
+  }
   
   // Função auxiliar para criar campo EMV
   function createEMVField(id, value) {
-    const length = value.length.toString().padStart(2, '0');
+    // A especificação EMV usa COMPRIMENTO EM BYTES, não caracteres
+    const valueBuffer = Buffer.from(value, 'utf8');
+    const length = valueBuffer.length.toString().padStart(2, '0');
     return id + length + value;
   }
   
@@ -29,11 +54,13 @@ function generatePixPayload(pixKey, amount, recipientName, city) {
   // 00: Payload Format Indicator
   payload += createEMVField('00', '01');
   
-  // 01: Point of Initiation Method
+  // 01: Point of Initiation Method (11 para Estático, 12 para Dinâmico)
+  // Como estamos gerando um valor fixo, 12 é tecnicamente mais correto, 
+  // mas 11 é mais universal para chaves estáticas simples
   payload += createEMVField('01', '12');
   
   // 26: Merchant Account Information (PIX)
-  const pixData = createEMVField('00', 'br.gov.bcb.pix') + createEMVField('01', pixKey);
+  const pixData = createEMVField('00', 'br.gov.bcb.pix') + createEMVField('01', normalizedKey);
   payload += createEMVField('26', pixData);
   
   // 52: Merchant Category Code (0000 = não especificado)
@@ -58,36 +85,33 @@ function generatePixPayload(pixKey, amount, recipientName, city) {
   const additionalData = createEMVField('05', 'DOACAO');
   payload += createEMVField('62', additionalData);
   
-  // 63: CRC16 (será calculado)
+  // 63: CRC16 - OBRIGATÓRIO NA ESTRUTURA
+  // Adiciona o marcador do CRC (ID 63, Tamanho 04)
   payload += '6304';
   
-  // Calcular CRC16
+  // Calcular CRC16 sobre TODO o payload (incluindo o '6304')
   const crc16 = calculateCRC16(payload);
   
-  // Substituir os últimos 4 dígitos pelo CRC calculado
-  payload = payload.slice(0, -4) + crc16;
-  
-  return payload;
+  // Concatena o valor do CRC ao final
+  return payload + crc16;
 }
 
 // Função para calcular CRC16 conforme especificação PIX (polinomial 0x1021)
 function calculateCRC16(payload) {
-  const polynomial = 0x1021;
   let crc = 0xFFFF;
+  const polynomial = 0x1021;
   
-  // Converter string para bytes
   const data = Buffer.from(payload, 'utf8');
   
   for (let i = 0; i < data.length; i++) {
     crc ^= (data[i] << 8);
-    
     for (let j = 0; j < 8; j++) {
       if (crc & 0x8000) {
         crc = (crc << 1) ^ polynomial;
       } else {
         crc = crc << 1;
       }
-      crc &= 0xFFFF; // Manter em 16 bits
+      crc &= 0xFFFF;
     }
   }
   
