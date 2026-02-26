@@ -212,9 +212,6 @@ const Donations = () => {
                         <Label htmlFor="stripe" className="flex items-center gap-2 cursor-pointer">
                           <CreditCard className="w-5 h-5 text-blue-600" />
                           Cartão de Crédito/Débito
-                          <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
-                            Beta
-                          </span>
                         </Label>
                       </div>
                     </RadioGroup>
