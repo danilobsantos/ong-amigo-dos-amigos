@@ -15,6 +15,7 @@ import BlogPost from './pages/BlogPost';
 import Contact from './pages/Contact';
 import FinancialReports from './pages/FinancialReports';
 import SocialCastration from './pages/SocialCastration';
+import DonationSuccess from './pages/DonationSuccess';
 import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminDogs from './pages/admin/Dogs';
@@ -63,6 +64,7 @@ function App() {
                       <Route path="/adocao" element={<Adoption />} />
                       <Route path="/adocao/:id" element={<DogDetail />} />
                       <Route path="/doacoes" element={<Donations />} />
+                      <Route path="/doacoes/sucesso" element={<DonationSuccess />} />
                       <Route path="/voluntariado" element={<Volunteer />} />
                       <Route path="/blog" element={<Blog />} />
                       <Route path="/blog/:slug" element={<BlogPost />} />
