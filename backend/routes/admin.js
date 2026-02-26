@@ -76,7 +76,10 @@ router.get('/settings', async (req, res) => {
           facebook: '',
           instagram: '',
           youtube: '',
-          tiktok: ''
+          tiktok: '',
+          stripePublicKey: '',
+          stripeSecretKey: '',
+          stripeWebhookSecret: ''
         }
       });
     }
@@ -90,7 +93,11 @@ router.get('/settings', async (req, res) => {
 
 router.put('/settings', async (req, res) => {
   try {
-    const { siteName, logo, address, phone, whatsapp, email, facebook, instagram, youtube, tiktok } = req.body;
+    const { 
+      siteName, logo, address, phone, whatsapp, email, 
+      facebook, instagram, youtube, tiktok,
+      stripePublicKey, stripeSecretKey, stripeWebhookSecret
+    } = req.body;
     
     // Verificar se já existem configurações
     let settings = await prisma.setting.findFirst();
@@ -109,7 +116,10 @@ router.put('/settings', async (req, res) => {
           facebook,
           instagram,
           youtube,
-          tiktok
+          tiktok,
+          stripePublicKey,
+          stripeSecretKey,
+          stripeWebhookSecret
         }
       });
     } else {
@@ -125,7 +135,10 @@ router.put('/settings', async (req, res) => {
           facebook,
           instagram,
           youtube,
-          tiktok
+          tiktok,
+          stripePublicKey,
+          stripeSecretKey,
+          stripeWebhookSecret
         }
       });
     }

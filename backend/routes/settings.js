@@ -22,7 +22,10 @@ router.get('/', async (req, res) => {
           facebook: '',
           instagram: '',
           youtube: '',
-          tiktok: ''
+          tiktok: '',
+          stripePublicKey: '',
+          stripeSecretKey: '',
+          stripeWebhookSecret: ''
         }
       });
     }
@@ -38,7 +41,8 @@ router.get('/', async (req, res) => {
       facebook: settings.facebook,
       instagram: settings.instagram,
       youtube: settings.youtube,
-      tiktok: settings.tiktok
+      tiktok: settings.tiktok,
+      stripePublicKey: settings.stripePublicKey
     };
 
     res.json({ settings: publicSettings });
