@@ -7,12 +7,12 @@ import { dogsAPI, statsAPI } from '../lib/api';
 
 const Home = () => {
   const [featuredDogs, setFeaturedDogs] = useState([]);
-  const [stats, setStats] = useState({
+  /*const [stats, setStats] = useState({
     dogsRescued: 0,
     dogsAdopted: 0,
     activeVolunteers: 0,
     totalDonations: 0
-  });
+  }); */
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,13 +21,13 @@ const Home = () => {
 
   const loadData = async () => {
     try {
-      const [dogsResponse, statsResponse] = await Promise.all([
+      const [dogsResponse, ] = await Promise.all([
         dogsAPI.getAll({ limit: 6 }),
         statsAPI.get()
       ]);
       
       setFeaturedDogs(dogsResponse.data.dogs || []);
-      setStats(statsResponse.data);
+      //setStats(statsResponse.data);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -131,28 +131,29 @@ const Home = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-                {stats.dogsRescued}
+                {`510`}
               </div>
               <p className="text-gray-600">Cães e Gatos Resgatados</p>
             </div>
             <div className="text-center">
               <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-                {stats.dogsAdopted}
+                {`1003`}
               </div>
               <p className="text-gray-600">Adoções Realizadas</p>
             </div>
             <div className="text-center">
               <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-                {stats.activeVolunteers}
+                {`42`}
               </div>
               <p className="text-gray-600">Voluntários Ativos</p>
             </div>
             <div className="text-center">
               <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-                R$ {Number(stats.totalDonations).toLocaleString('pt-BR')}
+                {`2002`}
               </div>
-              <p className="text-gray-600">Arrecadado</p>
+              <p className="text-gray-600">Animais Castrados</p>
             </div>
+            
           </div>
         </div>
       </section>
