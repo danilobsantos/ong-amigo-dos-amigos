@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Heart, Clock, MapPin, Phone, Mail, CheckCircle } from 'lucide-react';
+import { Users, Heart, Clock, MapPin, Phone, Mail, CheckCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -34,23 +34,23 @@ const Volunteer = () => {
   };
 
   const volunteerAreas = [
-    { id: 'resgate', label: 'Resgate de Animais', description: 'Participar de resgates de emergência' },
-    { id: 'cuidados', label: 'Cuidados Diários', description: 'Alimentação, limpeza e cuidados básicos' },
-    { id: 'transporte', label: 'Transporte', description: 'Levar animais ao veterinário ou eventos' },
-    { id: 'eventos', label: 'Eventos e Campanhas', description: 'Organizar e participar de eventos' },
-    { id: 'adocao', label: 'Processo de Adoção', description: 'Auxiliar no processo de adoção' },
-    { id: 'administrativo', label: 'Apoio Administrativo', description: 'Tarefas administrativas e documentação' },
-    { id: 'veterinario', label: 'Cuidados Veterinários', description: 'Apoio médico veterinário' },
-    { id: 'marketing', label: 'Marketing e Comunicação', description: 'Redes sociais e divulgação' }
+    { id: 'resgate', label: 'Resgate de Animais', emoji: '🚑', description: 'Participar de resgates de emergência' },
+    { id: 'cuidados', label: 'Cuidados Diários', emoji: '🐾', description: 'Alimentação, limpeza e cuidados básicos' },
+    { id: 'transporte', label: 'Transporte', emoji: '🚗', description: 'Levar animais ao veterinário ou eventos' },
+    { id: 'eventos', label: 'Eventos e Campanhas', emoji: '🎉', description: 'Organizar e participar de eventos' },
+    { id: 'adocao', label: 'Processo de Adoção', emoji: '🏡', description: 'Auxiliar no processo de adoção' },
+    { id: 'administrativo', label: 'Apoio Administrativo', emoji: '📋', description: 'Tarefas administrativas e documentação' },
+    { id: 'veterinario', label: 'Cuidados Veterinários', emoji: '🩺', description: 'Apoio médico veterinário' },
+    { id: 'marketing', label: 'Marketing e Comunicação', emoji: '📱', description: 'Redes sociais e divulgação' }
   ];
 
   const benefits = [
-    'Certificado de horas de voluntariado',
-    'Treinamento especializado',
-    'Networking com outros voluntários',
-    'Experiência em proteção animal',
-    'Satisfação pessoal de ajudar',
-    'Flexibilidade de horários'
+    { text: 'Certificado de horas de voluntariado', emoji: '🎓' },
+    { text: 'Treinamento especializado', emoji: '📚' },
+    { text: 'Networking com outros voluntários', emoji: '🤝' },
+    { text: 'Experiência em proteção animal', emoji: '🐕' },
+    { text: 'Satisfação pessoal de ajudar', emoji: '💚' },
+    { text: 'Flexibilidade de horários', emoji: '⏰' }
   ];
 
   const requirements = [
@@ -61,12 +61,8 @@ const Volunteer = () => {
     'Disponibilidade para treinamento inicial'
   ];
 
-  // Função para aplicar máscara de telefone
   const formatPhone = (value) => {
-    // Remove tudo que não é dígito
     const numbers = value.replace(/\D/g, '');
-    
-    // Aplica a máscara (XX) XXXXX-XXXX
     if (numbers.length <= 11) {
       return numbers
         .replace(/(\d{2})(\d)/, '($1) $2')
@@ -78,8 +74,6 @@ const Volunteer = () => {
   const handlePhoneChange = (e) => {
     const formattedValue = formatPhone(e.target.value);
     setPhoneValue(formattedValue);
-    
-    // Validar em tempo real
     const numbers = formattedValue.replace(/\D/g, '');
     if (numbers.length > 0 && numbers.length < 10) {
       setPhoneError('Telefone deve ter pelo menos 10 dígitos');
@@ -99,30 +93,15 @@ const Volunteer = () => {
   const onSubmit = async (data) => {
     try {
       setSubmitting(true);
-      
       if (selectedAreas.length === 0) {
         alert('Por favor, selecione pelo menos uma área de interesse');
         return;
       }
-
-      // Validar telefone manualmente
       const cleanPhone = phoneValue.replace(/\D/g, '');
-      if (!phoneValue.trim()) {
-        setPhoneError('Telefone é obrigatório');
-        return;
-      }
-      if (cleanPhone.length < 10) {
-        setPhoneError('Telefone deve ter pelo menos 10 dígitos');
-        return;
-      }
+      if (!phoneValue.trim()) { setPhoneError('Telefone é obrigatório'); return; }
+      if (cleanPhone.length < 10) { setPhoneError('Telefone deve ter pelo menos 10 dígitos'); return; }
 
-      const volunteerData = {
-        ...data,
-        phone: cleanPhone,
-        areas: selectedAreas
-      };
-
-      await volunteersAPI.create(volunteerData);
+      await volunteersAPI.create({ ...data, phone: cleanPhone, areas: selectedAreas });
       setSubmitted(true);
       reset();
       setSelectedAreas([]);
@@ -137,270 +116,288 @@ const Volunteer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Modal de Confirmação */}
+    <div className="min-h-screen bg-background">
+
+      {/* ── Success Modal ── */}
       <Dialog open={submitted} onOpenChange={setSubmitted}>
-        <DialogContent className="max-w-md">
-          <DialogHeader className="text-center">
-            <div className="mx-auto mb-4">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
+        <DialogContent className="max-w-md rounded-[2.5rem] border-0 shadow-2xl">
+          <DialogHeader className="text-center pt-4">
+            <div className="w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-primary" />
             </div>
-            <DialogTitle className="text-2xl text-center font-bold text-gray-900">
-              Cadastro Realizado!
+            <DialogTitle className="heading-card text-2xl text-center">
+              Cadastro Realizado! 🎉
             </DialogTitle>
-            <DialogDescription className="text-gray-600 text-center mt-4">
-              Obrigado pelo seu interesse em ser voluntário! Entraremos em contato 
+            <DialogDescription className="body-base text-foreground/60 text-center mt-4">
+              Obrigado pelo seu interesse em ser voluntário! Entraremos em contato
               em breve para dar continuidade ao processo.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-2 mt-6">
-            <Button 
-              onClick={() => setSubmitted(false)} 
-              className="flex-1"
-            >
-              Fazer Novo Cadastro
+          <div className="flex gap-3 mt-6 pb-2">
+            <Button onClick={() => setSubmitted(false)} className="btn-premium-md btn-primary flex-1">
+              Novo Cadastro
             </Button>
-            <Button 
-              variant="outline"
-              onClick={() => setSubmitted(false)}
-              className="flex-1"
-            >
+            <Button variant="outline" onClick={() => setSubmitted(false)} className="btn-premium-md flex-1 border-2">
               Fechar
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Header */}
-      <section className="bg-primary text-white section-padding">
-        <div className="container-max text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Seja um Voluntário</h1>
-          <p className="text-xl max-w-2xl mx-auto">
-            Junte-se à nossa equipe e faça a diferença na vida de cães e gatos que precisam de amor e cuidado. 
+      {/* ── Hero Section ── */}
+      <section className="relative section-padding bg-primary text-white overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-secondary/15 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+        <div className="container-max text-center relative z-10">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 text-white/80 font-black text-xs mb-6 tracking-[0.2em] uppercase">
+            🤝 Voluntariado
+          </span>
+          <h1 className="heading-hero text-white mb-6">Seja um Voluntário</h1>
+          <p className="body-large text-white/80 max-w-2xl mx-auto">
+            Junte-se à nossa equipe e faça a diferença na vida de cães e gatos que precisam de amor e cuidado.
             Sua ajuda é fundamental para continuarmos salvando vidas.
           </p>
         </div>
       </section>
 
+      {/* ── Main Content ── */}
       <div className="container-max section-padding">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Formulário */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+          {/* ── Registration Form ── */}
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-6 h-6 text-primary" />
-                  Cadastro de Voluntário
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Informações Pessoais */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Informações Pessoais</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="border-0 bg-white shadow-soft rounded-[2.5rem]">
+              <CardContent className="p-10">
+                {/* Form header */}
+                <div className="flex items-center gap-4 mb-10">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Users className="w-7 h-7 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="heading-card">Cadastro de Voluntário</h2>
+                    <p className="body-small text-foreground/60">Preencha o formulário e entraremos em contato</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+
+                  {/* Personal Info */}
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-foreground/50 mb-5">
+                      Informações Pessoais
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Nome Completo *</Label>
+                        <Label htmlFor="name" className="body-small font-black text-foreground/80">Nome Completo *</Label>
                         <Input
                           id="name"
                           {...register('name', { required: 'Nome é obrigatório' })}
-                          className={errors.name ? 'border-red-500' : ''}
+                          className={`h-12 rounded-2xl border-2 bg-muted/30 focus:bg-white transition-all ${errors.name ? 'border-destructive' : 'border-transparent focus:border-primary/20'}`}
                         />
-                        {errors.name && (
-                          <p className="text-red-500 text-sm">{errors.name.message}</p>
-                        )}
+                        {errors.name && <p className="text-xs text-destructive font-bold">{errors.name.message}</p>}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="email">E-mail *</Label>
+                        <Label htmlFor="email" className="body-small font-black text-foreground/80">E-mail *</Label>
                         <Input
                           id="email"
                           type="email"
-                          {...register('email', { 
+                          {...register('email', {
                             required: 'E-mail é obrigatório',
-                            pattern: {
-                              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                              message: 'E-mail inválido'
-                            }
+                            pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: 'E-mail inválido' }
                           })}
-                          className={errors.email ? 'border-red-500' : ''}
+                          className={`h-12 rounded-2xl border-2 bg-muted/30 focus:bg-white transition-all ${errors.email ? 'border-destructive' : 'border-transparent focus:border-primary/20'}`}
                         />
-                        {errors.email && (
-                          <p className="text-red-500 text-sm">{errors.email.message}</p>
-                        )}
+                        {errors.email && <p className="text-xs text-destructive font-bold">{errors.email.message}</p>}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="phone">Telefone *</Label>
+                        <Label htmlFor="phone" className="body-small font-black text-foreground/80">Telefone *</Label>
                         <Input
                           id="phone"
                           value={phoneValue}
                           onChange={handlePhoneChange}
                           placeholder="(11) 99999-9999"
                           maxLength={15}
-                          className={phoneError ? 'border-red-500' : ''}
+                          className={`h-12 rounded-2xl border-2 bg-muted/30 focus:bg-white transition-all ${phoneError ? 'border-destructive' : 'border-transparent focus:border-primary/20'}`}
                         />
-                        {phoneError && (
-                          <p className="text-red-500 text-sm">{phoneError}</p>
-                        )}
+                        {phoneError && <p className="text-xs text-destructive font-bold">{phoneError}</p>}
                       </div>
                     </div>
                   </div>
 
-                  {/* Disponibilidade */}
+                  {/* Availability */}
                   <div className="space-y-2">
-                    <Label htmlFor="availability">Disponibilidade *</Label>
+                    <Label htmlFor="availability" className="body-small font-black text-foreground/80">Disponibilidade *</Label>
                     <Textarea
                       id="availability"
                       {...register('availability', { required: 'Disponibilidade é obrigatória' })}
-                      className={errors.availability ? 'border-red-500' : ''}
+                      className={`rounded-2xl border-2 bg-muted/30 focus:bg-white transition-all resize-none ${errors.availability ? 'border-destructive' : 'border-transparent focus:border-primary/20'}`}
                       placeholder="Descreva sua disponibilidade (dias da semana, horários, frequência...)"
                       rows={3}
                     />
-                    {errors.availability && (
-                      <p className="text-red-500 text-sm">{errors.availability.message}</p>
-                    )}
+                    {errors.availability && <p className="text-xs text-destructive font-bold">{errors.availability.message}</p>}
                   </div>
 
-                  {/* Áreas de Interesse */}
+                  {/* Areas of Interest */}
                   <div>
-                    <Label className="text-base font-semibold mb-4 block">
-                      Áreas de Interesse * (selecione pelo menos uma)
-                    </Label>
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-foreground/50 mb-5">
+                      Áreas de Interesse * <span className="normal-case tracking-normal font-medium">(selecione pelo menos uma)</span>
+                    </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {volunteerAreas.map((area) => (
-                        <div key={area.id} className="flex items-start space-x-3 p-3 border rounded-lg">
+                        <label
+                          key={area.id}
+                          htmlFor={area.id}
+                          className={`flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
+                            selectedAreas.includes(area.id)
+                              ? 'border-primary/40 bg-primary/5'
+                              : 'border-border/50 bg-muted/20 hover:border-primary/20 hover:bg-muted/40'
+                          }`}
+                        >
                           <Checkbox
                             id={area.id}
                             checked={selectedAreas.includes(area.id)}
                             onCheckedChange={(checked) => handleAreaChange(area.id, checked)}
+                            className="mt-0.5"
                           />
                           <div className="flex-1">
-                            <Label htmlFor={area.id} className="font-medium cursor-pointer">
-                              {area.label}
-                            </Label>
-                            <p className="text-sm text-gray-600">{area.description}</p>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span>{area.emoji}</span>
+                              <span className="font-black text-sm text-foreground">{area.label}</span>
+                            </div>
+                            <p className="body-small text-foreground/50">{area.description}</p>
                           </div>
-                        </div>
+                        </label>
                       ))}
                     </div>
                   </div>
 
-                  {/* Experiência */}
+                  {/* Experience */}
                   <div className="space-y-2">
-                    <Label htmlFor="experience">Experiência com Animais (Opcional)</Label>
+                    <Label htmlFor="experience" className="body-small font-black text-foreground/80">
+                      Experiência com Animais <span className="font-medium text-foreground/40">(Opcional)</span>
+                    </Label>
                     <Textarea
                       id="experience"
                       {...register('experience')}
                       placeholder="Conte sobre sua experiência com animais, se houver..."
                       rows={4}
+                      className="rounded-2xl border-2 border-transparent bg-muted/30 focus:bg-white focus:border-primary/20 transition-all resize-none"
                     />
                   </div>
 
                   <Button
                     type="submit"
                     disabled={submitting}
-                    size="lg"
-                    className="w-full"
+                    className="btn-premium-hero btn-primary w-full"
                   >
-                    {submitting ? 'Enviando...' : 'Enviar Cadastro'}
+                    {submitting ? 'Enviando...' : (
+                      <>Enviar Cadastro <ArrowRight className="w-5 h-5 ml-2" /></>
+                    )}
                   </Button>
                 </form>
               </CardContent>
             </Card>
           </div>
 
-          {/* Sidebar */}
+          {/* ── Sidebar ── */}
           <div className="space-y-6">
-            {/* Por que ser voluntário */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Heart className="w-5 h-5 text-red-500" />
-                  Por que ser Voluntário?
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm">
-                  {benefits.map((benefit, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-primary rounded-full"></div>
-                      {benefit}
+
+            {/* Benefits */}
+            <Card className="border-0 bg-white shadow-soft rounded-[2.5rem]">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center">
+                    <Heart className="w-5 h-5 text-secondary fill-current" />
+                  </div>
+                  <h3 className="heading-card text-lg">Por que ser Voluntário?</h3>
+                </div>
+                <ul className="space-y-3">
+                  {benefits.map((benefit, i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <span className="text-lg">{benefit.emoji}</span>
+                      <span className="body-small text-foreground/70">{benefit.text}</span>
                     </li>
                   ))}
                 </ul>
               </CardContent>
             </Card>
 
-            {/* Requisitos */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  Requisitos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm">
-                  {requirements.map((requirement, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                      {requirement}
+            {/* Requirements */}
+            <Card className="border-0 bg-white shadow-soft rounded-[2.5rem]">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="heading-card text-lg">Requisitos</h3>
+                </div>
+                <ul className="space-y-3">
+                  {requirements.map((req, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0" />
+                      <span className="body-small text-foreground/70">{req}</span>
                     </li>
                   ))}
                 </ul>
               </CardContent>
             </Card>
 
-            {/* Contato */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Dúvidas?</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-primary" />
-                  <span className="text-sm">{settings?.phone || '(11) 99999-9999'}</span>
+            {/* Contact */}
+            {/* <Card className="border-0 bg-white shadow-soft rounded-[2.5rem]">
+              <CardContent className="p-8">
+                <h3 className="heading-card text-lg mb-6">Dúvidas?</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Phone className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="body-small text-foreground/70">{settings?.phone || '(11) 99999-9999'}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="body-small text-foreground/70 break-all">{settings?.email || 'voluntarios@amigodosamigos.org'}</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <MapPin className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="body-small text-foreground/70 whitespace-pre-line">
+                      {settings?.address || 'Rua das Flores, 123\nCentro, São Paulo - SP'}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-primary" />
-                  <span className="text-sm">{settings?.email || 'voluntarios@amigodosamigos.org'}</span>
+              </CardContent>
+            </Card> */}
+
+            {/* Schedule */}
+            <Card className="border-0 bg-white shadow-soft rounded-[2.5rem]">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="heading-card text-lg">Horários de Atividades</h3>
                 </div>
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-6 h-6 text-primary" />
-                  <span className="text-sm whitespace-pre-line">
-                    {settings?.address || 'Rua das Flores, 123\nCentro, São Paulo - SP'}
-                  </span>
+                <div className="space-y-3">
+                  {[
+                    { day: 'Segunda a Sexta', hours: '8h às 17h' },
+                    { day: 'Sábados', hours: '8h às 12h' },
+                    { day: 'Domingos', hours: 'Eventos especiais' }
+                  ].map((item, i) => (
+                    <div key={i} className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+                      <span className="body-small font-black text-foreground/70">{item.day}</span>
+                      <span className="body-small text-foreground/50">{item.hours}</span>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Horários */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-blue-500" />
-                  Horários de Atividades
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Segunda a Sexta:</span>
-                    <span>8h às 17h</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Sábados:</span>
-                    <span>8h às 12h</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Domingos:</span>
-                    <span>Eventos especiais</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

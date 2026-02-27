@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Upload, Image, Bold, Italic, Link, List, Quote } from 'lucide-react';
+import { ArrowLeft, Upload, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { blogAPI, uploadsAPI } from '../../lib/api';
 import AdminLayout from '../../components/AdminLayout';
+import RichTextEditor from '../../components/RichTextEditor';
 import { useNavigate } from 'react-router-dom';
 
 const CreatePost = () => {
@@ -44,9 +45,10 @@ const CreatePost = () => {
       newErrors.excerpt = 'Resumo deve ter no máximo 300 caracteres';
     }
     
-    if (!formData.content.trim()) {
+    const plainText = formData.content.replace(/<[^>]*>/g, '').trim();
+    if (!plainText) {
       newErrors.content = 'Conteúdo é obrigatório';
-    } else if (formData.content.trim().length < 50) {
+    } else if (plainText.length < 50) {
       newErrors.content = 'Conteúdo deve ter pelo menos 50 caracteres';
     }
     
@@ -90,50 +92,7 @@ const CreatePost = () => {
     }
   };
 
-  const insertTextFormat = (format) => {
-    const textarea = document.getElementById('content-textarea');
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
-    
-    let formattedText = '';
-    
-    switch (format) {
-      case 'bold':
-        formattedText = `**${selectedText || 'texto em negrito'}**`;
-        break;
-      case 'italic':
-        formattedText = `*${selectedText || 'texto em itálico'}*`;
-        break;
-      case 'link':
-        formattedText = `[${selectedText || 'texto do link'}](URL)`;
-        break;
-      case 'list':
-        formattedText = `\n- ${selectedText || 'item da lista'}\n`;
-        break;
-      case 'quote':
-        formattedText = `\n> ${selectedText || 'citação'}\n`;
-        break;
-      default:
-        formattedText = selectedText;
-    }
-    
-    const newContent = 
-      textarea.value.substring(0, start) + 
-      formattedText + 
-      textarea.value.substring(end);
-    
-    handleInputChange('content', newContent);
-    
-    // Focar de volta no textarea
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(
-        start + formattedText.length, 
-        start + formattedText.length
-      );
-    }, 0);
-  };
+  // insertTextFormat removed — Quill WYSIWYG handles formatting
 
   const handleSubmit = async (publish = false) => {
     if (!validateForm()) {
@@ -260,61 +219,15 @@ const CreatePost = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Conteúdo do Post</CardTitle>
-                {/* Barra de Ferramentas */}
-                <div className="flex gap-2 p-2 bg-gray-50 rounded-lg">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => insertTextFormat('bold')}
-                  >
-                    <Bold className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => insertTextFormat('italic')}
-                  >
-                    <Italic className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => insertTextFormat('link')}
-                  >
-                    <Link className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => insertTextFormat('list')}
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => insertTextFormat('quote')}
-                  >
-                    <Quote className="w-4 h-4" />
-                  </Button>
-                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <Textarea
-                    id="content-textarea"
-                    placeholder="Escreva o conteúdo do post aqui... Use as ferramentas acima para formatação. (Mínimo 50 caracteres)"
-                    rows={15}
+                  <RichTextEditor
                     value={formData.content}
-                    onChange={(e) => handleInputChange('content', e.target.value)}
-                    className={`font-mono ${errors.content ? 'border-red-500' : ''}`}
+                    onChange={(html) => handleInputChange('content', html)}
+                    error={errors.content}
+                    placeholder="Escreva o conteúdo do post aqui... (Mínimo 50 caracteres)"
                   />
-                  <div className="flex justify-between items-center">
-                    <p className="text-xs text-gray-500">{formData.content.length} caracteres (mínimo 50)</p>
-                    <p className="text-sm text-gray-500">
-                      Dica: Selecione texto e use as ferramentas de formatação acima
-                    </p>
-                  </div>
                   {errors.content && (
                     <p className="text-sm text-red-500 mt-1">{errors.content}</p>
                   )}
