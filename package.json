@@ -1,6 +1,6 @@
 {
   "name": "ong-amigo-dos-amigos",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "description": "Site institucional e de arrecadação da ONG Amigo dos Amigos - Resgatando e cuidando de cães abandonados",
   "main": "backend/server.js",
   "scripts": {
@@ -53,8 +53,8 @@
     "performance"
   ],
   "author": {
-    "name": "ONG Amigo dos Amigos",
-    "email": "contato@ongamigodosamigos.com.br",
+    "name": "Danilo Santos",
+    "email": "danilo@devstudio.com.br",
     "url": "https://ongamigodosamigos.com.br"
   },
   "contributors": [

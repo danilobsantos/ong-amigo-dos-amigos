@@ -1,6 +1,6 @@
 {
   "name": "ong-amigo-dos-amigos-backend",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "description": "Backend para o site da ONG Amigo dos Amigos",
   "main": "server.js",
   "prisma": {

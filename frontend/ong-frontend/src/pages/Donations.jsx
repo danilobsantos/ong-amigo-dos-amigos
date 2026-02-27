@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, DollarSign, CreditCard, Smartphone, FileText, Shield, Users, Share2 } from 'lucide-react';
+import {
+  Heart, DollarSign, CreditCard, Smartphone, FileText,
+  Shield, Users, Share2, Copy, CheckCircle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -10,6 +13,40 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useForm } from 'react-hook-form';
 import { donationsAPI } from '../lib/api';
+
+const inputClass =
+  'h-12 rounded-2xl border-2 border-transparent bg-muted/30 focus:bg-white focus:border-primary/20 transition-all';
+const labelClass = 'block text-sm font-black text-foreground mb-2';
+
+const predefinedAmounts = [
+  { value: '25',   label: 'R$ 25',    description: 'Ração por 1 semana' },
+  { value: '50',   label: 'R$ 50',    description: 'Vacina completa' },
+  { value: '100',  label: 'R$ 100',   description: 'Castração' },
+  { value: '200',  label: 'R$ 200',   description: 'Tratamento veterinário' },
+  { value: '500',  label: 'R$ 500',   description: 'Resgate de emergência' },
+  { value: '1000', label: 'R$ 1.000', description: 'Cuidados mensais' },
+];
+
+const impactExamples = [
+  { amount: 'R$ 25',  impact: 'Alimenta 1 pet por 1 semana' },
+  { amount: 'R$ 50',  impact: 'Vacina completa para 1 pet' },
+  { amount: 'R$ 100', impact: 'Castração de 1 pet' },
+  { amount: 'R$ 200', impact: 'Tratamento veterinário básico' },
+  { amount: 'R$ 500', impact: 'Resgate e primeiros socorros' },
+];
+
+const securityItems = [
+  'Transações criptografadas',
+  'Dados protegidos',
+  'Recibo por e-mail',
+  'Cancelamento fácil',
+];
+
+const helpOptions = [
+  { icon: Heart, label: 'Adotar um Pet', href: '/adocao' },
+  { icon: Users, label: 'Ser Voluntário', href: '/voluntariado' },
+  { icon: Share2, label: 'Divulgar Nosso Trabalho', href: '#' },
+];
 
 const Donations = () => {
   const navigate = useNavigate();
@@ -21,42 +58,20 @@ const Donations = () => {
   const [showPixPayment, setShowPixPayment] = useState(false);
   const [pixData, setPIXData] = useState(null);
   const [currentDonationId, setCurrentDonationId] = useState(null);
+  const [pixCopied, setPixCopied] = useState(false);
 
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit } = useForm();
 
-  const predefinedAmounts = [
-    { value: '25', label: 'R$ 25', description: 'Ração para 1 semana' },
-    { value: '50', label: 'R$ 50', description: 'Vacina completa' },
-    { value: '100', label: 'R$ 100', description: 'Castração' },
-    { value: '200', label: 'R$ 200', description: 'Tratamento veterinário' },
-    { value: '500', label: 'R$ 500', description: 'Resgate de emergência' },
-    { value: '1000', label: 'R$ 1.000', description: 'Cuidados mensais' },
-  ];
-
-  const impactExamples = [
-    { amount: 'R$ 25', impact: 'Alimenta 1 cão por 1 semana' },
-    { amount: 'R$ 50', impact: 'Vacina completa para 1 cão' },
-    { amount: 'R$ 100', impact: 'Castração de 1 animal' },
-    { amount: 'R$ 200', impact: 'Tratamento veterinário básico' },
-    { amount: 'R$ 500', impact: 'Resgate e primeiros socorros' },
-  ];
-
-  const transparencyReports = [
-    { title: 'Relatório Financeiro 2024', date: '2024', link: '#' },
-    { title: 'Prestação de Contas Q3', date: 'Set 2024', link: '#' },
-    { title: 'Relatório de Atividades', date: 'Ago 2024', link: '#' },
-  ];
+  const getAmount = () => selectedAmount || customAmount;
 
   const onSubmit = async (data) => {
     try {
       setSubmitting(true);
-      
-      const amount = selectedAmount || customAmount;
+      const amount = getAmount();
       if (!amount || parseFloat(amount) < 1) {
         alert('Por favor, selecione ou digite um valor válido');
         return;
       }
-
       const donationData = {
         amount: parseFloat(amount),
         recurring: recurring || false,
@@ -65,34 +80,24 @@ const Donations = () => {
       };
 
       if (paymentMethod === 'pix') {
-        // Processar pagamento PIX
         const response = await donationsAPI.createPix(donationData);
-        
-        // Mostrar QR Code PIX
         setPIXData(response.data.pix);
         setCurrentDonationId(response.data.donation.id);
         setShowPixPayment(true);
-      } else if (paymentMethod === 'stripe') {
-        // Processar pagamento Stripe
+      } else {
         try {
           const response = await donationsAPI.createStripe(donationData);
           setCurrentDonationId(response.data.donation.id);
-          
-          // Redirecionar para checkout do Stripe
           window.location.href = response.data.checkoutUrl;
         } catch (stripeError) {
-          console.error('Erro específico do Stripe:', stripeError);
-          
-          // Se for erro de configuração, sugerir PIX
           if (stripeError.response?.status === 500) {
             alert('Pagamento com cartão temporariamente indisponível. Que tal tentar com PIX? É mais rápido! 😊');
             setPaymentMethod('pix');
             return;
           }
-          throw stripeError; // Re-throw para ser capturado pelo catch externo
+          throw stripeError;
         }
       }
-      
     } catch (error) {
       console.error('Erro ao processar doação:', error);
       alert('Erro ao processar doação. Tente novamente.');
@@ -101,71 +106,79 @@ const Donations = () => {
     }
   };
 
-  const getSelectedAmountValue = () => {
-    return selectedAmount || customAmount;
+  const handleCopyPix = () => {
+    if (!pixData) return;
+    navigator.clipboard.writeText(pixData.payload);
+    setPixCopied(true);
+    setTimeout(() => setPixCopied(false), 2500);
   };
 
-  // Main Donations Page
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <section className="bg-primary text-white section-padding">
-        <div className="container-max text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Faça uma Doação</h1>
-          <p className="text-xl max-w-2xl mx-auto">
-            Sua contribuição salva vidas. Cada doação nos ajuda a resgatar, 
-            cuidar e encontrar lares amorosos para cães em situação de vulnerabilidade.
+    <div className="min-h-screen bg-background">
+
+      {/* ── Hero ── */}
+      <section className="relative section-padding bg-primary text-white overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-secondary/15 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+        <div className="container-max text-center relative z-10">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 text-white/80 font-black text-xs mb-6 tracking-[0.2em] uppercase">
+            ❤️ Doe Agora
+          </span>
+          <h1 className="heading-hero text-white mb-6">Faça uma Doação</h1>
+          <p className="body-large text-white/80 max-w-2xl mx-auto">
+            Sua contribuição salva vidas. Cada doação nos ajuda a resgatar, cuidar e encontrar lares amorosos para cães em situação de vulnerabilidade.
           </p>
         </div>
       </section>
 
       <div className="container-max section-padding">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Formulário de Doação */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Heart className="w-6 h-6 text-primary" />
-                  Fazer Doação
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Valores Predefinidos */}
+
+          {/* ── Donation Form (2 cols) ── */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="border-0 bg-white shadow-soft rounded-[2.5rem]">
+              <CardContent className="p-8">
+
+                {/* Card header */}
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <Heart className="w-5 h-5 text-primary" />
+                  </div>
                   <div>
-                    <Label className="text-base font-semibold mb-4 block">
-                      Escolha o valor da doação
-                    </Label>
+                    <h2 className="heading-card">Fazer uma Doação</h2>
+                    <p className="body-small text-foreground/50">Cada centavo faz a diferença</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
+
+                  {/* Amount grid */}
+                  <div>
+                    <label className={labelClass}>Escolha o valor da doação</label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {predefinedAmounts.map((amount) => (
+                      {predefinedAmounts.map((a) => (
                         <button
-                          key={amount.value}
+                          key={a.value}
                           type="button"
-                          onClick={() => {
-                            setSelectedAmount(amount.value);
-                            setCustomAmount('');
-                          }}
-                          className={`p-4 rounded-lg border-2 text-left transition-all ${
-                            selectedAmount === amount.value
-                              ? 'border-primary bg-primary/5'
-                              : 'border-gray-200 hover:border-primary/50'
+                          onClick={() => { setSelectedAmount(a.value); setCustomAmount(''); }}
+                          className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                            selectedAmount === a.value
+                              ? 'border-primary bg-primary/5 shadow-sm'
+                              : 'border-border hover:border-primary/40 hover:bg-muted/20'
                           }`}
                         >
-                          <div className="font-semibold text-lg">{amount.label}</div>
-                          <div className="text-sm text-gray-600">{amount.description}</div>
+                          <div className="font-black text-lg text-foreground">{a.label}</div>
+                          <div className="body-small text-foreground/50 mt-0.5">{a.description}</div>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Valor Personalizado */}
+                  {/* Custom amount */}
                   <div>
-                    <Label htmlFor="customAmount">Ou digite outro valor</Label>
+                    <label htmlFor="customAmount" className={labelClass}>Ou digite outro valor</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                        R$
-                      </span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40 font-black text-sm">R$</span>
                       <Input
                         id="customAmount"
                         type="number"
@@ -173,272 +186,249 @@ const Donations = () => {
                         step="0.01"
                         placeholder="0,00"
                         value={customAmount}
-                        onChange={(e) => {
-                          setCustomAmount(e.target.value);
-                          setSelectedAmount('');
-                        }}
-                        className="pl-10"
+                        onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(''); }}
+                        className={`${inputClass} pl-12`}
                       />
                     </div>
                   </div>
 
-                  {/* Doação Recorrente */}
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="recurring"
-                      checked={recurring}
-                      onCheckedChange={setRecurring}
-                    />
-                    <Label htmlFor="recurring" className="text-sm">
-                      Fazer desta uma doação mensal recorrente
-                    </Label>
+                  {/* Recurring */}
+                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-muted/20 border-2 border-border">
+                    <Checkbox id="recurring" checked={recurring} onCheckedChange={setRecurring} />
+                    <label htmlFor="recurring" className="text-sm font-medium text-foreground/70 cursor-pointer">
+                      Tornar esta uma doação mensal recorrente
+                    </label>
                   </div>
 
-                  {/* Método de Pagamento */}
+                  {/* Payment method */}
                   <div>
-                    <Label className="text-base font-semibold mb-4 block">
-                      Método de Pagamento
-                    </Label>
-                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                    <label className={labelClass}>Método de Pagamento</label>
+                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
+                      <div className={`flex items-center gap-3 p-4 border-2 rounded-2xl cursor-pointer transition-all ${paymentMethod === 'pix' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'}`}
+                        onClick={() => setPaymentMethod('pix')}>
                         <RadioGroupItem value="pix" id="pix" />
-                        <Label htmlFor="pix" className="flex items-center gap-2 cursor-pointer">
-                          <Smartphone className="w-5 h-5 text-green-600" />
-                          PIX (Instantâneo)
-                        </Label>
+                        <label htmlFor="pix" className="flex items-center gap-2 cursor-pointer font-medium">
+                          <div className="w-7 h-7 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <Smartphone className="w-4 h-4 text-primary" />
+                          </div>
+                          PIX <span className="body-small text-foreground/40 font-normal ml-1">— Instantâneo</span>
+                        </label>
                       </div>
-                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                      <div className={`flex items-center gap-3 p-4 border-2 rounded-2xl cursor-pointer transition-all ${paymentMethod === 'stripe' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'}`}
+                        onClick={() => setPaymentMethod('stripe')}>
                         <RadioGroupItem value="stripe" id="stripe" />
-                        <Label htmlFor="stripe" className="flex items-center gap-2 cursor-pointer">
-                          <CreditCard className="w-5 h-5 text-blue-600" />
+                        <label htmlFor="stripe" className="flex items-center gap-2 cursor-pointer font-medium">
+                          <div className="w-7 h-7 rounded-xl bg-secondary/15 flex items-center justify-center">
+                            <CreditCard className="w-4 h-4 text-secondary" />
+                          </div>
                           Cartão de Crédito/Débito
-                        </Label>
+                        </label>
                       </div>
                     </RadioGroup>
                   </div>
 
-                  {/* Informações do Doador (Opcional) */}
-                  <div className="space-y-4">
-                    <Label className="text-base font-semibold">
-                      Informações do Doador (Opcional)
-                    </Label>
+                  {/* Donor info */}
+                  <div>
+                    <label className={labelClass}>Informações do Doador <span className="font-normal text-foreground/40">(Opcional)</span></label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="donorName">Nome</Label>
-                        <Input
-                          id="donorName"
-                          {...register('donorName')}
-                          placeholder="Seu nome"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="donorEmail">E-mail</Label>
-                        <Input
-                          id="donorEmail"
-                          type="email"
-                          {...register('donorEmail')}
-                          placeholder="seu@email.com"
-                        />
-                      </div>
+                      <Input
+                        id="donorName"
+                        {...register('donorName')}
+                        placeholder="Seu nome"
+                        className={inputClass}
+                      />
+                      <Input
+                        id="donorEmail"
+                        type="email"
+                        {...register('donorEmail')}
+                        placeholder="seu@email.com"
+                        className={inputClass}
+                      />
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className="body-small text-foreground/40 mt-2">
                       Fornecendo seus dados, você receberá atualizações sobre o impacto da sua doação.
                     </p>
                   </div>
 
-                  {/* Resumo da Doação */}
-                  {getSelectedAmountValue() && (
-                    <Card className="bg-primary/5 border-primary/20">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold">Total da doação:</span>
-                          <span className="text-2xl font-bold text-primary">
-                            R$ {parseFloat(getSelectedAmountValue()).toFixed(2).replace('.', ',')}
-                          </span>
-                        </div>
-                        {recurring && (
-                          <p className="text-sm text-gray-600 mt-2">
-                            Doação mensal recorrente
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
+                  {/* Summary */}
+                  {getAmount() && (
+                    <div className="flex justify-between items-center p-5 rounded-2xl bg-primary/5 border-2 border-primary/15">
+                      <span className="font-black text-sm text-foreground">Total da doação{recurring ? ' / mês' : ''}:</span>
+                      <span className="text-2xl font-black text-primary">
+                        R$ {parseFloat(getAmount()).toFixed(2).replace('.', ',')}
+                      </span>
+                    </div>
                   )}
 
+                  {/* Submit */}
                   <Button
                     type="submit"
-                    disabled={submitting || !getSelectedAmountValue()}
-                    size="lg"
-                    className="w-full btn-accent"
+                    disabled={submitting || !getAmount()}
+                    className="btn-premium-hero btn-primary w-full"
                   >
-                    {submitting ? 'Processando...' : (
-                      <>
-                        <DollarSign className="w-5 h-5 mr-2" />
+                    {submitting ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                        Processando...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <DollarSign className="w-5 h-5" />
                         Doar Agora
-                      </>
+                      </span>
                     )}
                   </Button>
                 </form>
               </CardContent>
             </Card>
 
-            {/* Outras Formas de Ajudar */}
-            <div className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Outras Formas de Ajudar</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button variant="outline" size="sm" className="w-full justify-start">
-                    <Heart className="w-4 h-4 mr-2" />
-                    Adotar um Cão
-                  </Button>
-                  <Button variant="outline" size="sm" className="w-full justify-start">
-                    <Users className="w-4 h-4 mr-2" />
-                    Ser Voluntário
-                  </Button>
-                  <Button variant="outline" size="sm" className="w-full justify-start">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Divulgar Nosso Trabalho
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Impacto das Doações */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Impacto das Doações</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {impactExamples.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
-                    <span className="font-semibold text-accent">{item.amount}</span>
-                    <span className="text-sm text-gray-600 text-right">{item.impact}</span>
+            {/* Other ways to help */}
+            <Card className="border-0 bg-white shadow-soft rounded-[2.5rem]">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-secondary/15 flex items-center justify-center">
+                    <Heart className="w-5 h-5 text-secondary" />
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Segurança */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-green-600" />
-                  Doação Segura
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    Transações criptografadas
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    Dados protegidos
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    Recibo por e-mail
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    Cancelamento fácil
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Transparência */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-600" />
-                  Transparência
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 mb-4">
-                  Acesse nossos relatórios financeiros e veja como suas doações são utilizadas.
-                </p>
-                <div className="space-y-2">
-                  {transparencyReports.map((report, index) => (
+                  <h3 className="heading-card">Outras Formas de Ajudar</h3>
+                </div>
+                <div className="space-y-3">
+                  {helpOptions.map((opt) => (
                     <a
-                      key={index}
-                      href={report.link}
-                      className="block p-2 rounded border hover:bg-gray-50 transition-colors"
+                      key={opt.label}
+                      href={opt.href}
+                      className="flex items-center gap-3 p-4 rounded-2xl border-2 border-border hover:border-primary/30 hover:bg-muted/20 transition-all group"
                     >
-                      <div className="font-medium text-sm">{report.title}</div>
-                      <div className="text-xs text-gray-500">{report.date}</div>
+                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                        <opt.icon className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="font-medium text-sm text-foreground/70 group-hover:text-foreground transition-colors">{opt.label}</span>
                     </a>
                   ))}
                 </div>
               </CardContent>
             </Card>
           </div>
+
+          {/* ── Sidebar ── */}
+          <div className="space-y-5">
+
+            {/* Impact */}
+            <Card className="border-0 bg-white shadow-soft rounded-[2rem]">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-9 h-9 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <Heart className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="font-black text-sm text-foreground">Impacto das Doações</span>
+                </div>
+                <div className="space-y-0">
+                  {impactExamples.map((item, i) => (
+                    <div key={i} className="flex justify-between items-center py-3 border-b border-border/50 last:border-0">
+                      <span className="font-black text-sm text-primary">{item.amount}</span>
+                      <span className="body-small text-foreground/50 text-right max-w-[55%]">{item.impact}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Security */}
+            <Card className="border-0 bg-primary/5 shadow-soft rounded-[2rem]">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="font-black text-sm text-foreground">Doação Segura</span>
+                </div>
+                <ul className="space-y-3">
+                  {securityItems.map((item, i) => (
+                    <li key={i} className="flex items-center gap-2.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                      <span className="body-small text-foreground/60">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Transparency */}
+            <Card className="border-0 bg-white shadow-soft rounded-[2rem]">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-2xl bg-secondary/15 flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-secondary" />
+                  </div>
+                  <span className="font-black text-sm text-foreground">Transparência</span>
+                </div>
+                <p className="body-small text-foreground/50 mb-4">
+                  Veja como suas doações são utilizadas em nossos relatórios financeiros.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full btn-premium-md border-2 border-border hover:border-primary hover:text-primary transition-all"
+                  onClick={() => navigate('/prestacao-contas')}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Ver Relatórios
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 
-      {/* Modal PIX Payment */}
+      {/* ── PIX Payment Modal ── */}
       <Dialog open={showPixPayment} onOpenChange={setShowPixPayment}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md rounded-[2.5rem] border-0 shadow-2xl p-8">
           <DialogHeader>
-            <DialogTitle className="flex justify-center gap-2">
-              <Smartphone className="w-6 h-6 text-green-600" />
-              Pagamento PIX
-            </DialogTitle>
-            <DialogDescription className={"text-center"}>
-              Escaneie o QR Code abaixo ou copie o código PIX para fazer sua doação.
+            <div className="flex justify-center mb-5">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <Smartphone className="w-8 h-8 text-primary" />
+              </div>
+            </div>
+            <DialogTitle className="text-center heading-card">Pagamento PIX</DialogTitle>
+            <DialogDescription className="text-center body-base text-foreground/60 mt-2">
+              Escaneie o QR Code ou copie o código PIX para concluir sua doação.
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="text-center space-y-6">
-            
-            
-            {pixData && (
-              <div className="space-y-4">
-                <div className="flex justify-center">
-                  <img 
-                    src={pixData.qrCode} 
-                    alt="QR Code PIX" 
-                    className="border rounded max-w-48"
-                  />
-                </div>
-                
-                <div className="bg-gray-100 p-3 rounded text-sm text-left">
-                  <p className="font-semibold mb-2">Chave PIX:</p>
-                  <p className="break-all text-gray-700">{pixData.key}</p>
-                </div>
-                
-                <div className="space-y-3">
-                  <Button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(pixData.payload);
-                      alert('Código PIX copiado!');
-                    }}
-                    className="w-full"
-                  >
-                    Copiar Código PIX
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setShowPixPayment(false);
-                      navigate(`/doacoes/sucesso?donation_id=${currentDonationId}`);
-                    }}
-                    className="w-full"
-                  >
-                    Pagamento Realizado
-                  </Button>
-                </div>
+
+          {pixData && (
+            <div className="space-y-5 mt-4">
+              {/* QR Code */}
+              <div className="flex justify-center">
+                <img
+                  src={pixData.qrCode}
+                  alt="QR Code PIX"
+                  className="border-2 border-border rounded-2xl max-w-44"
+                />
               </div>
-            )}
-          </div>
+
+              {/* PIX Key */}
+              <div className="p-4 rounded-2xl bg-muted/30 border-2 border-border">
+                <p className="font-black text-xs text-foreground/50 mb-1 uppercase tracking-wider">Chave PIX</p>
+                <p className="break-all body-small text-foreground/70">{pixData.key}</p>
+              </div>
+
+              {/* Actions */}
+              <div className="space-y-3">
+                <Button onClick={handleCopyPix} className="btn-premium-md btn-primary w-full">
+                  {pixCopied ? (
+                    <span className="flex items-center gap-2"><CheckCircle className="w-4 h-4" />Código Copiado!</span>
+                  ) : (
+                    <span className="flex items-center gap-2"><Copy className="w-4 h-4" />Copiar Código PIX</span>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="btn-premium-md w-full border-2 border-border hover:border-primary hover:text-primary transition-all"
+                  onClick={() => { setShowPixPayment(false); navigate(`/doacoes/sucesso?donation_id=${currentDonationId}`); }}
+                >
+                  Pagamento Realizado ✓
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

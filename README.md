@@ -2,6 +2,13 @@
 
 Uma plataforma digital moderna e completa para a ONG Amigo dos Amigos, desenvolvida para otimizar o resgate, cuidado e adoção responsável de cães & gatos abandonados.
 
+## 🖥️ Preview
+
+![Homepage - ONG Amigo dos Amigos](docs/screenshot_home.png)
+
+> **Stack:** React 19 · Vite · TailwindCSS 4 · Node.js · Express · Prisma · MySQL
+> **Última atualização:** Fevereiro 2026
+
 ## 📋 Sobre o Projeto
 
 Esta plataforma foi desenvolvida para fornecer uma solução digital completa para a ONG Amigo dos Amigos, incluindo:
@@ -581,10 +588,10 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 ## 🎯 Roadmap e Evolução
 
-### ✅ Versão Atual 2.0 - **COMPLETA**
+### ✅ Versão Atual 2.1 - **COMPLETA** (Fevereiro 2026)
 
 #### 💰 Sistema de Doações Avançado
-- [x] PIX instantâneo com QR Code EMV válido
+- [x] PIX instantâneo com QR Code EMV válido (payload normalizado e corrigido)
 - [x] Stripe Checkout completo
 - [x] Doações recorrentes automáticas
 - [x] Interface modal responsiva
@@ -611,6 +618,18 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - [x] Organização temporal por períodos
 - [x] Metadados e auditoria completa
 
+#### 📝 Blog Aprimorado
+- [x] Editor com suporte a formatação de texto rica
+- [x] Preservação de quebras de linha (whitespace-pre-wrap)
+- [x] Preview de artigos antes da publicação
+- [x] Gestão completa de categorias e tags
+
+#### 🐾 Página de Perfil do Pet Refinada
+- [x] Layout harmônico e visualmente balanceado
+- [x] Cards de informação (idade, porte, etc.) com tamanho proporcional
+- [x] Botões de CTA otimizados e consistentes com o design system
+- [x] Hierarquia tipográfica corrigida
+
 #### 🔧 Melhorias Técnicas
 - [x] React 19 e dependências atualizadas
 - [x] Prisma 5.19 com performance otimizada
@@ -618,7 +637,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - [x] Logging estruturado com Winston
 - [x] SEO e Core Web Vitals otimizados
 
-### 🚀 Versão 3.0 - **PLANEJADA** (Q2 2025)
+### 🚀 Versão 3.0 - **PLANEJADA** (Q3 2026)
 
 #### 🐈 Funcionalidades Avançadas
 - [ ] **Sistema de Apadrinhamento** - Padrinhamento mensal de pets
